@@ -47,8 +47,8 @@ public class myGame extends VariableFrameRateGame
     private double startTime;
 
     private GameObject player, x, y, z;
-    private GameObject prize, prize2, prize3, spike, ground, spike2, spike3;
-    private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, prizeS1, prizeS2, prizeS3, spikeS, modelGhost;
+    private GameObject prize, prize2, prize3, ground;
+    private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, prizeS1, prizeS2, prizeS3, modelGhost;
     private TextureImage prizeT1, prizeT2, prizeT3, spikeT, doltx, groundT, ghostT, hills, ghostModelT, carTexture;
     private Light ambLight, dirLight;
     private NodeController rc, bc;
@@ -160,7 +160,6 @@ public class myGame extends VariableFrameRateGame
     {	Matrix4f initialTranslation, initialScale;
         deltaTime = 0.0f;
        // prevTime = 0.0f;
-
         // build dolphin in the center of the window
         player = new GameObject(GameObject.root(), playerS, carTexture);
         initialTranslation = (new Matrix4f()).translation(0,-0.5f,0);
@@ -169,17 +168,17 @@ public class myGame extends VariableFrameRateGame
         player.setLocalScale(initialScale);
 
         //Build enemy
-        prize = new GameObject(GameObject.root(), prizeS1, prizeT1);
+        prize = new GameObject(GameObject.root(),modelGhost,ghostModelT);
         prize.setLocalTranslation((new Matrix4f()).translation(3,0.5f,0));
         prize.setLocalScale((new Matrix4f()).scaling(0.3f));
 
         //second enemy
-        prize2 = new GameObject(GameObject.root(), prizeS2, prizeT2);
+        prize2 = new GameObject(GameObject.root(), modelGhost, ghostModelT);
         prize2.setLocalTranslation((new Matrix4f()).translation(5,0.5f,3));
         prize2.setLocalScale((new Matrix4f()).scaling(0.3f));
 
         //third enemy
-        prize3 = new GameObject(GameObject.root(), prizeS3, prizeT3);
+        prize3 = new GameObject(GameObject.root(), modelGhost, ghostModelT);
         prize3.setLocalTranslation((new Matrix4f()).translation(-4,0.5f,-4));
         prize3.setLocalScale((new Matrix4f()).scaling(0.3f));
 
@@ -187,7 +186,7 @@ public class myGame extends VariableFrameRateGame
         //-------------Ground object-------------------------
         ground = new GameObject(GameObject.root(), groundS, groundT);
         ground.setLocalTranslation((new Matrix4f()).translation(0,0,0));
-        ground.setLocalScale((new Matrix4f()).scaling(10.0f));
+        ground.setLocalScale((new Matrix4f()).scaling(15.0f));
         ground.setHeightMap(hills);
 
         //physics test ball 1
@@ -249,12 +248,11 @@ public class myGame extends VariableFrameRateGame
         onDolphin = true;
 
         // -------------- adding node controllers -----------
-        rc = new RotationController(engine, new Vector3f(1,0,0), 0.001f);
-        (engine.getSceneGraph()).addNodeController(rc);
-        rc.enable();
-        bc = new BounceController(engine, 2.0f);
+        bc = new BounceController(engine, 1.0f);
         (engine.getSceneGraph()).addNodeController(bc);
-        bc.addTarget(player);
+        bc.addTarget(prize);
+        bc.addTarget(prize2);
+        bc.addTarget(prize3);
         bc.enable();
 
         //----------------- adding lights -----------------
@@ -354,9 +352,7 @@ public class myGame extends VariableFrameRateGame
         // build and set HUD
         cam = (engine.getRenderSystem().getViewport("MAIN").getCamera());
         hudManagement((int) totalTime);
-        //rotate spike around prizes
-        rotateSpikes(amtt);
-        
+
         //Terrain height stuff.
          Vector3f loc = player.getWorldLocation();
          float height = ground.getHeight(loc.x(), loc.z()); 
@@ -435,21 +431,6 @@ public class myGame extends VariableFrameRateGame
         }
     }
     //-----------End of Networking Methods ---------------------
-
-    public void rotateSpikes(double amttt)
-    {
-        currentT = spike.getLocalTranslation();
-        currentT.translation((float)Math.sin(amttt)*1.3f, 0.0f, (float)Math.cos(amttt)*0.4f);
-        spike.setLocalTranslation(currentT);
-
-        currentT = spike2.getLocalTranslation();
-        currentT.translation((float)Math.sin(amttt)*1.3f, 0.0f, (float)Math.cos(amttt)*0.4f);
-        spike2.setLocalTranslation(currentT);
-
-        currentT = spike3.getLocalTranslation();
-        currentT.translation((float)Math.sin(amttt)*1.3f, 0.0f, (float)Math.cos(amttt)*0.4f);
-        spike3.setLocalTranslation(currentT);
-    }
 
     public void toggleAxes()
     {
@@ -583,19 +564,16 @@ public class myGame extends VariableFrameRateGame
         {
             score +=1;
             prize.setLocalLocation(new Vector3f(randX, 0.5f, randZ));
-            rc.addTarget(prize);
         }
         else if(d2 <= 1.0f)
         {
             score +=1;
             prize2.setLocalLocation(new Vector3f(randX, 0.5f, randZ));
-            rc.addTarget(prize2);
         }
         else if (d3 <= 1.0f)
         {
             score +=1;
             prize3.setLocalLocation(new Vector3f(randX, 0.5f, randZ));
-            rc.addTarget(prize3);
         }
     }
     //Script method for 7a
