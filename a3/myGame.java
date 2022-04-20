@@ -79,7 +79,8 @@ public class myGame extends VariableFrameRateGame
     //Variables for physics
     private GameObject ball1, ball2;
     private PhysicsEngine physicsEngine;
-    private PhysicsObject ball1P, ball2P, planeP;
+    private JBulletPhysicsEngine jBulletPE;
+    private PhysicsObject ball1P, ball2P, planeP, playerP;
     private boolean running = false;
     private float vals[] = new float[16];
 
@@ -200,7 +201,6 @@ public class myGame extends VariableFrameRateGame
 
         //Imported model - Ghost
        // ghostMO = new GameObject(GameObject.root(), modelGhost, ghostModelT);
-
 
         //Axes lines
         x = new GameObject(GameObject.root(), linxS);
@@ -335,6 +335,7 @@ public class myGame extends VariableFrameRateGame
         planeP.setBounciness(1.0f);
         ground.setPhysicsObject(planeP);
 
+
     } //-----End of initializeGame -----
 
 
@@ -347,7 +348,6 @@ public class myGame extends VariableFrameRateGame
         prevTime = System.currentTimeMillis();
         amt = elapsedTime * 0.03;
         double amtt = totalTime * 0.001;
-
 
         // build and set HUD
         cam = (engine.getRenderSystem().getViewport("MAIN").getCamera());
@@ -374,7 +374,6 @@ public class myGame extends VariableFrameRateGame
                 }
             }
         }
-
         // update inputs and camera
         im.update((float)elapsedTime);
         collectPrize();
@@ -387,12 +386,10 @@ public class myGame extends VariableFrameRateGame
         dirLight.setLocation(player.getWorldLocation());
         dirLight.setDirection(player.getWorldForwardVector());
     }
-
     //-----------NETWORKING METHODS------------
     public ObjShape getGhostShape() { return ghostS; }
     public TextureImage getGhostTexture() { return ghostT; }
     public GhostManager getGhostManager() { return gm; }
-
 
     private void setupNetworking()
     {	isClientConnected = false;
