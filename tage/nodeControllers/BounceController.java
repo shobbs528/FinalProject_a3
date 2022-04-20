@@ -25,7 +25,7 @@ public class BounceController extends NodeController {
     /** Creates a bounce controller on the vertical axis and speed as specified. */
     public BounceController(Engine e, float cycle) {
         super();
-        bounceSpeed = .0003f;
+        bounceSpeed = .00002f;
         cycleTime = cycle;
         engine = e;
     }
