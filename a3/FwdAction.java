@@ -31,12 +31,12 @@ public class FwdAction extends AbstractInputAction
 
 		if(onDolphin) 
       {
-			if (e.getValue() <= 0.0f)
+			if (e.getValue() >= 0.0f)
          {
 				oldPosition = av.getWorldLocation();
 				fwdDirection = new Vector4f(0f, 0f, -1f, -1f);
 				fwdDirection.mul(av.getWorldRotation());
-				fwdDirection.mul(0.005f);
+				fwdDirection.mul(0.008f);
 				newPosition = oldPosition.add(fwdDirection.x(), fwdDirection.y(), fwdDirection.z());
 				av.setLocalLocation(newPosition);
 			} 
@@ -45,7 +45,7 @@ public class FwdAction extends AbstractInputAction
 				oldPosition = av.getWorldLocation();
 				fwdDirection = new Vector4f(0f, 0f, 1f, 1f);
 				fwdDirection.mul(av.getWorldRotation());
-				fwdDirection.mul(0.005f);
+				fwdDirection.mul(0.008f);
 				newPosition = oldPosition.add(fwdDirection.x(), fwdDirection.y(), fwdDirection.z());
 				av.setLocalLocation(newPosition);
 			}
