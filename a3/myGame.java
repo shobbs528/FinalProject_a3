@@ -74,8 +74,6 @@ public class myGame extends VariableFrameRateGame
     private File scriptFile2, scriptFile3;
     private long fileLastModifiedTime = 0;
     ScriptEngine jsEngine;
-    //Importing Model variables
-    private ImportedModel ghostModel, carModel;
     //Variables for physics
     private GameObject ball1, ball2;
     private PhysicsEngine physicsEngine;
@@ -83,6 +81,8 @@ public class myGame extends VariableFrameRateGame
     private PhysicsObject ball1P, ball2P, planeP, playerP;
     private boolean running = false;
     private float vals[] = new float[16];
+
+
 
     public myGame()
     {
