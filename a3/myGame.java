@@ -140,9 +140,14 @@ public class myGame extends VariableFrameRateGame
         modelGhost = new ImportedModel("triangleGhost.obj");
 
         //Animation shapes
+<<<<<<< Updated upstream
         carAS = new AnimatedShape("car.rkm", "carSk.rks");
         carAS.loadAnimation("FORE_ST","carForeSt.rka");
         carAS.loadAnimation("BACK_ST","carBackSt.rka");
+=======
+        carAS = new AnimatedShape("")
+
+>>>>>>> Stashed changes
     }
 
     @Override
