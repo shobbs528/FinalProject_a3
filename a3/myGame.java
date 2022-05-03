@@ -82,8 +82,8 @@ public class myGame extends VariableFrameRateGame
     private boolean running = false;
     private float vals[] = new float[16];
     //Animation Variables---------------------------------------
-    private GameObject carM;
     private AnimatedShape carAS;
+    private AnimatedShape ghostAS;
 
 
     public myGame()
@@ -140,14 +140,12 @@ public class myGame extends VariableFrameRateGame
         modelGhost = new ImportedModel("triangleGhost.obj");
 
         //Animation shapes
-<<<<<<< Updated upstream
         carAS = new AnimatedShape("car.rkm", "carSk.rks");
         carAS.loadAnimation("FORE_ST","carForeSt.rka");
         carAS.loadAnimation("BACK_ST","carBackSt.rka");
-=======
-        carAS = new AnimatedShape("")
+        ghostAS = new AnimatedShape("ghost.rkm", "ghost.rks");
+        ghostAS.loadAnimation("WALK", "ghost.rka");
 
->>>>>>> Stashed changes
     }
 
     @Override
@@ -167,26 +165,32 @@ public class myGame extends VariableFrameRateGame
 
     @Override
     public void buildObjects()
-    {	Matrix4f initialTranslation, initialScale;
+    {	Matrix4f initialTranslation, initialScale, initialRotation;
         deltaTime = 0.0f;
        // prevTime = 0.0f;
         // build player in the center of the window
-        player = new GameObject(GameObject.root(), carAS, carTexture);
-        initialTranslation = (new Matrix4f()).translation(0,-0.5f,0);
+        player = new GameObject(GameObject.root(), playerS, carTexture);
+        initialTranslation = (new Matrix4f()).translation(0,0.0f,0);
         initialScale = (new Matrix4f()).scaling(0.2f);
         player.setLocalTranslation(initialTranslation);
+       // initialRotation = (new Matrix4f()).rotationX((float)java.lang.Math.toRadians(-90.0f));
         player.setLocalScale(initialScale);
+      //  player.setLocalRotation(initialRotation);
+        //initialRotation = (new Matrix4f()).rotationZ((float)java.lang.Math.toRadians(180.0f));
+       //  player.setLocalRotation(initialRotation);
 
         //Build enemy
-        prize = new GameObject(GameObject.root(),modelGhost,ghostModelT);
+        prize = new GameObject(GameObject.root(),ghostAS, ghostModelT);
         prize.setLocalTranslation((new Matrix4f()).translation(3,0.5f,0));
         prize.setLocalScale((new Matrix4f()).scaling(0.3f));
+        //nitialRotation = (new Matrix4f()).rotationZ((float)java.lang.Math.toRadians(90.0f));
+      //  prize.setLocalRotation(initialRotation);
         //second enemy
-        prize2 = new GameObject(GameObject.root(), modelGhost, ghostModelT);
+        prize2 = new GameObject(GameObject.root(), ghostAS, ghostModelT);
         prize2.setLocalTranslation((new Matrix4f()).translation(5,0.5f,3));
         prize2.setLocalScale((new Matrix4f()).scaling(0.3f));
         //third enemy
-        prize3 = new GameObject(GameObject.root(), modelGhost, ghostModelT);
+        prize3 = new GameObject(GameObject.root(), ghostAS, ghostModelT);
         prize3.setLocalTranslation((new Matrix4f()).translation(-4,0.5f,-4));
         prize3.setLocalScale((new Matrix4f()).scaling(0.3f));
 
@@ -379,7 +383,7 @@ public class myGame extends VariableFrameRateGame
         // update inputs and camera
         im.update((float)elapsedTime);
         collectPrize();
-        carAS.updateAnimation();
+        ghostAS.updateAnimation();
 
         processNetworking((float)elapsedTime);
     }//End of update
@@ -499,8 +503,8 @@ public class myGame extends VariableFrameRateGame
             break;
         //Animation-----------------------------------
         case KeyEvent.VK_F:
-            carAS.stopAnimation();
-            carAS.playAnimation("FORE_ST", 0.2f, AnimatedShape.EndType.LOOP, 0);
+            ghostAS.stopAnimation();
+            ghostAS.playAnimation("WALK", 0.05f, AnimatedShape.EndType.LOOP, 0);
             break;
 
         case KeyEvent.VK_B:
@@ -509,7 +513,7 @@ public class myGame extends VariableFrameRateGame
              break;
 
         case KeyEvent.VK_H:
-            carAS.stopAnimation();
+            ghostAS.stopAnimation();
             break;
 
             //Move Player forward
