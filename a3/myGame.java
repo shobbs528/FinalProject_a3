@@ -125,9 +125,6 @@ public class myGame extends VariableFrameRateGame
     public void loadShapes()
     {
         playerS = new ImportedModel("triangleCar.obj"); //Not used at the moment
-        prizeS1 = new Torus();
-        prizeS2 = new Torus();
-        prizeS3 = new Torus();
         linxS = new Line(new Vector3f(0f,0f,0f), new Vector3f(3f,0f,0f));
         linyS = new Line(new Vector3f(0f,0f,0f), new Vector3f(0f,3f,0f));
         linzS = new Line(new Vector3f(0f,0f,0f), new Vector3f(0f,0f,-3f));
@@ -181,18 +178,20 @@ public class myGame extends VariableFrameRateGame
 
         //Build enemy
         prize = new GameObject(GameObject.root(),ghostAS, ghostModelT);
-        prize.setLocalTranslation((new Matrix4f()).translation(3,0.5f,0));
+        prize.setLocalTranslation((new Matrix4f()).translation(0,0.5f,0));
         prize.setLocalScale((new Matrix4f()).scaling(0.3f));
-        //nitialRotation = (new Matrix4f()).rotationZ((float)java.lang.Math.toRadians(90.0f));
-      //  prize.setLocalRotation(initialRotation);
+        initialRotation = (new Matrix4f()).rotationX((float)java.lang.Math.toRadians(90.0f));
+        prize.setLocalRotation(initialRotation);
         //second enemy
         prize2 = new GameObject(GameObject.root(), ghostAS, ghostModelT);
         prize2.setLocalTranslation((new Matrix4f()).translation(5,0.5f,3));
         prize2.setLocalScale((new Matrix4f()).scaling(0.3f));
+        prize2.setLocalRotation(initialRotation);
         //third enemy
         prize3 = new GameObject(GameObject.root(), ghostAS, ghostModelT);
         prize3.setLocalTranslation((new Matrix4f()).translation(-4,0.5f,-4));
         prize3.setLocalScale((new Matrix4f()).scaling(0.3f));
+        prize3.setLocalRotation(initialRotation);
 
         //-------------Ground object-------------------------
         ground = new GameObject(GameObject.root(), groundS, groundT);
@@ -256,9 +255,9 @@ public class myGame extends VariableFrameRateGame
         // -------------- adding node controllers -----------
         bc = new BounceController(engine, 1.0f);
         (engine.getSceneGraph()).addNodeController(bc);
-        bc.addTarget(prize);
-        bc.addTarget(prize2);
-        bc.addTarget(prize3);
+        //bc.addTarget(prize);
+        //bc.addTarget(prize2);
+      //  bc.addTarget(prize3);
         bc.enable();
 
         //----------------- adding lights -----------------
