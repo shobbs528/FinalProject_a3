@@ -81,7 +81,9 @@ public class myGame extends VariableFrameRateGame
     private PhysicsObject ball1P, ball2P, planeP, playerP;
     private boolean running = false;
     private float vals[] = new float[16];
-
+    //NPC variables
+    private ObjShape npcShape;
+    private TextureImage npcTex;
 
 
     public myGame()
@@ -120,6 +122,8 @@ public class myGame extends VariableFrameRateGame
     public GameObject getPlayerModel() {return player; }
     public boolean getDolphinStatus() { return onDolphin; }
     public Camera getCam() { return cam; }
+    public ObjShape getNPCshape() { return npcShape; }
+    public TextureImage getNPCtexture() { return npcTex; }
 
     @Override
     public void loadShapes()

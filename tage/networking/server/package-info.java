@@ -3,4 +3,4 @@
  *
  * @author Kyle Matz
  */
-package tage.networking;
+package tage.networking.server;
