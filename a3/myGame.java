@@ -81,7 +81,9 @@ public class myGame extends VariableFrameRateGame
     private PhysicsObject ball1P, ball2P, planeP, playerP;
     private boolean running = false;
     private float vals[] = new float[16];
-
+    //Animation Variables---------------------------------------
+    private AnimatedShape carAS;
+    private AnimatedShape ghostAS;
 
 
     public myGame()
@@ -109,10 +111,8 @@ public class myGame extends VariableFrameRateGame
 
         // get the JavaScript engine
         ScriptEngine jsEngine = factory.getEngineByName("js");
-
         // run the script
         game.executeScript(jsEngine, scriptFileName);
-
         game.initializeSystem();
         game.game_loop();
     }
@@ -124,10 +124,7 @@ public class myGame extends VariableFrameRateGame
     @Override
     public void loadShapes()
     {
-        playerS = new ImportedModel("triangleCar.obj");
-        prizeS1 = new Torus();
-        prizeS2 = new Torus();
-        prizeS3 = new Torus();
+        playerS = new ImportedModel("triangleCar.obj"); //Not used at the moment
         linxS = new Line(new Vector3f(0f,0f,0f), new Vector3f(3f,0f,0f));
         linyS = new Line(new Vector3f(0f,0f,0f), new Vector3f(0f,3f,0f));
         linzS = new Line(new Vector3f(0f,0f,0f), new Vector3f(0f,0f,-3f));
@@ -138,6 +135,13 @@ public class myGame extends VariableFrameRateGame
         ghostS = new ImportedModel("triangleGhost.obj");
         //Shape for imported model
         modelGhost = new ImportedModel("triangleGhost.obj");
+
+        //Animation shapes
+        carAS = new AnimatedShape("car.rkm", "carSk.rks");
+        carAS.loadAnimation("FORE_ST","carForeSt.rka");
+        carAS.loadAnimation("BACK_ST","carBackSt.rka");
+        ghostAS = new AnimatedShape("ghost.rkm", "ghost.rks");
+        ghostAS.loadAnimation("WALK", "ghost.rka");
 
     }
 
@@ -158,31 +162,36 @@ public class myGame extends VariableFrameRateGame
 
     @Override
     public void buildObjects()
-    {	Matrix4f initialTranslation, initialScale;
+    {	Matrix4f initialTranslation, initialScale, initialRotation;
         deltaTime = 0.0f;
        // prevTime = 0.0f;
-        // build dolphin in the center of the window
+        // build player in the center of the window
         player = new GameObject(GameObject.root(), playerS, carTexture);
-        initialTranslation = (new Matrix4f()).translation(0,-0.5f,0);
+        initialTranslation = (new Matrix4f()).translation(0,0.0f,0);
         initialScale = (new Matrix4f()).scaling(0.2f);
         player.setLocalTranslation(initialTranslation);
+       // initialRotation = (new Matrix4f()).rotationX((float)java.lang.Math.toRadians(-90.0f));
         player.setLocalScale(initialScale);
+      //  player.setLocalRotation(initialRotation);
+        //initialRotation = (new Matrix4f()).rotationZ((float)java.lang.Math.toRadians(180.0f));
+       //  player.setLocalRotation(initialRotation);
 
         //Build enemy
-        prize = new GameObject(GameObject.root(),modelGhost,ghostModelT);
-        prize.setLocalTranslation((new Matrix4f()).translation(3,0.5f,0));
+        prize = new GameObject(GameObject.root(),ghostAS, ghostModelT);
+        prize.setLocalTranslation((new Matrix4f()).translation(0,0.5f,0));
         prize.setLocalScale((new Matrix4f()).scaling(0.3f));
-
+        initialRotation = (new Matrix4f()).rotationX((float)java.lang.Math.toRadians(90.0f));
+        prize.setLocalRotation(initialRotation);
         //second enemy
-        prize2 = new GameObject(GameObject.root(), modelGhost, ghostModelT);
+        prize2 = new GameObject(GameObject.root(), ghostAS, ghostModelT);
         prize2.setLocalTranslation((new Matrix4f()).translation(5,0.5f,3));
         prize2.setLocalScale((new Matrix4f()).scaling(0.3f));
-
+        prize2.setLocalRotation(initialRotation);
         //third enemy
-        prize3 = new GameObject(GameObject.root(), modelGhost, ghostModelT);
+        prize3 = new GameObject(GameObject.root(), ghostAS, ghostModelT);
         prize3.setLocalTranslation((new Matrix4f()).translation(-4,0.5f,-4));
         prize3.setLocalScale((new Matrix4f()).scaling(0.3f));
-
+        prize3.setLocalRotation(initialRotation);
 
         //-------------Ground object-------------------------
         ground = new GameObject(GameObject.root(), groundS, groundT);
@@ -198,9 +207,6 @@ public class myGame extends VariableFrameRateGame
         ball2 = new GameObject(GameObject.root(), new Sphere(), doltx);
         ball2.setLocalTranslation((new Matrix4f()).translation(-0.5f, 1.0f, 0.0f));
         ball2.setLocalScale((new Matrix4f()).scaling(0.50f));
-
-        //Imported model - Ghost
-       // ghostMO = new GameObject(GameObject.root(), modelGhost, ghostModelT);
 
         //Axes lines
         x = new GameObject(GameObject.root(), linxS);
@@ -218,8 +224,7 @@ public class myGame extends VariableFrameRateGame
         (engine.getRenderSystem()).addViewport("MAP",.75f,0,.25f,.25f);
         Camera camMap = (engine.getRenderSystem()).getViewport("MAP").getCamera();
 
-         Viewport mapVP = (engine.getRenderSystem()).getViewport("MAP");
-
+        Viewport mapVP = (engine.getRenderSystem()).getViewport("MAP");
         mapVP.setHasBorder(true);
         mapVP.setBorderWidth(3);
         mapVP.setBorderColor(0.0f, 1.0f, 1.0f);
@@ -250,9 +255,9 @@ public class myGame extends VariableFrameRateGame
         // -------------- adding node controllers -----------
         bc = new BounceController(engine, 1.0f);
         (engine.getSceneGraph()).addNodeController(bc);
-        bc.addTarget(prize);
-        bc.addTarget(prize2);
-        bc.addTarget(prize3);
+        //bc.addTarget(prize);
+        //bc.addTarget(prize2);
+      //  bc.addTarget(prize3);
         bc.enable();
 
         //----------------- adding lights -----------------
@@ -377,7 +382,8 @@ public class myGame extends VariableFrameRateGame
         // update inputs and camera
         im.update((float)elapsedTime);
         collectPrize();
-        
+        ghostAS.updateAnimation();
+
         processNetworking((float)elapsedTime);
     }//End of update
 
@@ -447,7 +453,6 @@ public class myGame extends VariableFrameRateGame
 
     public void hudManagement(int sec)
     {
-
         String elapsTimeStr = Integer.toString(sec);
         String scoreStr = Integer.toString(score);
         String dispStr1 = "Time = " + elapsTimeStr;
@@ -455,7 +460,6 @@ public class myGame extends VariableFrameRateGame
         String dolLoc = "Dolphin position = X: "+ (int) player.getWorldLocation().x
                                            + ", Y: " + (int)player.getWorldLocation().y
                                            + ", Z: " + (int) player.getWorldLocation().z;
-
         Vector3f hud1Color = new Vector3f(0,1,0);
         Vector3f hud2Color = new Vector3f(0,0,1);
         Vector3f hudHealthColor = new Vector3f(1, 0, 0);
@@ -468,14 +472,13 @@ public class myGame extends VariableFrameRateGame
         (engine.getHUDmanager()).setHUD1(dispStr1, hud1Color, 0, 15);
         (engine.getHUDmanager()).setHUD2(dispStr2, hud2Color, 175, 15);
        // (engine.getHUDmanager()).setHUD3(disHealth, hudHealthColor, 350, 15);
-
         (engine.getHUDmanager()).setHUD4(dolLoc, hudHealthColor, miniMap+10, 15);
     }
 
     @Override
     public void keyPressed(KeyEvent e)
     {
-        switch (e.getKeyCode())
+        switch (e.getKeyCode()) //Up, Down, Left, Right, 1, 2, W, A, S, D, Space, Enter, F, B, H
         {
         //Requirement 2.1
         case KeyEvent.VK_UP:
@@ -497,9 +500,22 @@ public class myGame extends VariableFrameRateGame
         case KeyEvent.VK_2:
             engine.getRenderSystem().getViewport("MAP").getCamera().moveFrontBack(-1f);
             break;
+        //Animation-----------------------------------
+        case KeyEvent.VK_F:
+            ghostAS.stopAnimation();
+            ghostAS.playAnimation("WALK", 0.05f, AnimatedShape.EndType.LOOP, 0);
+            break;
 
+        case KeyEvent.VK_B:
+             carAS.stopAnimation();
+             carAS.playAnimation("BACK_ST", 0.2f, AnimatedShape.EndType.LOOP, 0);
+             break;
 
-        //Move Dolphin forward
+        case KeyEvent.VK_H:
+            ghostAS.stopAnimation();
+            break;
+
+            //Move Player forward
         case KeyEvent.VK_W:
                 dolFwd = player.getWorldForwardVector();
                 dolLoc = player.getWorldLocation();
@@ -507,15 +523,15 @@ public class myGame extends VariableFrameRateGame
             break;
 
         case KeyEvent.VK_A:
-                  //Key turns dolphin
+                  //Key turns Player
                 player.objectYaw(player, 0.03f)
                 ;break;
 
-        case KeyEvent.VK_S: //Move dolphin backwards, same as forward but negative
+        case KeyEvent.VK_S: //Move Player backwards, same as forward but negative
                 dolFwd = player.getWorldForwardVector();
                 dolLoc = player.getWorldLocation();
                 player.setLocalLocation(dolLoc.add(dolFwd.mul(-0.4f)));
-             break;
+                break;
 
         case KeyEvent.VK_D:
                 player.objectYaw(player, -0.06f);
@@ -527,7 +543,6 @@ public class myGame extends VariableFrameRateGame
                 Invocable invocableEngine = (Invocable) jsEngine;
                 //get the light to be updated
                 Light lgt = engine.getLightManager().getLight(0);
-
                 // invoke the script function
                 try { invocableEngine.invokeFunction("updateAmbientColor", lgt); }
                 catch (ScriptException e1) {System.out.println("ScriptException in " + scriptFile3 + e1); }
