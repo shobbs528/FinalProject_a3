@@ -29,6 +29,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.*;
 import javax.script.Invocable;
+
 //Physics imports
 import tage.physics.PhysicsEngine;
 import tage.physics.PhysicsObject;
@@ -385,6 +386,24 @@ public class myGame extends VariableFrameRateGame
         backgroundMusic.setMinDistance(0.2f);
         backgroundMusic.setRollOff(5.0f);
 
+        CarStartup.setMaxDistance(20.0f);
+        CarStartup.setMinDistance(0.2f);
+        CarStartup.setRollOff(5.0f);
+
+        CarStartup.setLocation(player.getWorldLocation());
+        setEarParameters();
+
+        CarStartup.play();
+
+        try
+        {
+            Thread.sleep(5000);
+        }
+        catch(InterruptedException ie)
+        {
+            Thread.currentThread().interrupt();
+        }
+
         backgroundMusic.setLocation(player.getWorldLocation());
         setEarParameters();
 
@@ -439,6 +458,7 @@ public class myGame extends VariableFrameRateGame
         ghostAS.updateAnimation();
 
         //update sound
+//        System.out.println(player);
         backgroundMusic.setLocation(player.getWorldLocation());
         setEarParameters();
 
