@@ -1,10 +1,12 @@
 package a3;
 //Samantha Trevino and Sean Hobson
 //Spring '22, CSC 165, Final Project
+
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import tage.*;
-import tage.networking.IGameConnection;
+import tage.audio.*;
+import tage.networking.server.IGameConnection;
 import tage.physics.PhysicsEngineFactory;
 import tage.shapes.*;
 import java.lang.Math;
@@ -32,7 +34,7 @@ import tage.physics.PhysicsEngine;
 import tage.physics.PhysicsObject;
 import tage.physics.JBullet.*;
 
-import static tage.Utils.toDoubleArray;
+import static tage.Utils.*;
 
 public class myGame extends VariableFrameRateGame
 {
@@ -63,6 +65,10 @@ public class myGame extends VariableFrameRateGame
 
     private int skyboxTexture; // skyboxes
 
+    //Sound variables
+    private IAudioManager audioMgr;
+    private Sound backgroundMusic, GhostDying, CarStartup, CarDriving;
+
     //Networking variables.
     private GhostManager gm;
     private String serverAddress;
@@ -70,10 +76,12 @@ public class myGame extends VariableFrameRateGame
     private IGameConnection.ProtocolType serverProtocol;
     private ProtocolClient protClient;
     private boolean isClientConnected = false;
+
     //Script variables.
     private File scriptFile2, scriptFile3;
     private long fileLastModifiedTime = 0;
     ScriptEngine jsEngine;
+
     //Variables for physics
     private GameObject ball1, ball2;
     private PhysicsEngine physicsEngine;
@@ -81,6 +89,7 @@ public class myGame extends VariableFrameRateGame
     private PhysicsObject ball1P, ball2P, planeP, playerP;
     private boolean running = false;
     private float vals[] = new float[16];
+
     //Animation Variables---------------------------------------
     private AnimatedShape carAS;
     private AnimatedShape ghostAS;
@@ -341,8 +350,53 @@ public class myGame extends VariableFrameRateGame
         ground.setPhysicsObject(planeP);
 
 
+        initAudio();
+
     } //-----End of initializeGame -----
 
+
+    public void initAudio()
+    {
+        AudioResource resource1, resource2, resource3, resource4;
+        audioMgr = AudioManagerFactory.createAudioManager("tage.audio.joal.JOALAudioManager");
+
+        if (!audioMgr.initialize())
+        {
+            System.out.println("Audio Manager could not initialize.");
+            return;
+        }
+
+        resource1 = audioMgr.createAudioResource("assets/sounds/BackgroundMusic.wav", AudioResourceType.AUDIO_SAMPLE);
+        resource2 = audioMgr.createAudioResource("assets/sounds/CarDriving.wav", AudioResourceType.AUDIO_SAMPLE);
+        resource3 = audioMgr.createAudioResource("assets/sounds/GhostDying.wav", AudioResourceType.AUDIO_SAMPLE);
+        resource4 = audioMgr.createAudioResource("assets/sounds/StartupSound.wav", AudioResourceType.AUDIO_SAMPLE);
+
+        backgroundMusic = new Sound(resource1, SoundType.SOUND_MUSIC, 100, true);
+        GhostDying = new Sound(resource3, SoundType.SOUND_EFFECT, 100, false);
+        CarStartup = new Sound(resource4, SoundType.SOUND_EFFECT, 100, false);
+        CarDriving = new Sound(resource2, SoundType.SOUND_EFFECT, 100, false);
+
+        backgroundMusic.initialize(audioMgr);
+        GhostDying.initialize(audioMgr);
+        CarStartup.initialize(audioMgr);
+        CarDriving.initialize(audioMgr);
+
+        backgroundMusic.setMaxDistance(20.0f);
+        backgroundMusic.setMinDistance(0.2f);
+        backgroundMusic.setRollOff(5.0f);
+
+        backgroundMusic.setLocation(player.getWorldLocation());
+        setEarParameters();
+
+        backgroundMusic.play();
+    }
+
+    public void setEarParameters()
+    {
+        Camera cam = (engine.getRenderSystem()).getViewport("MAIN").getCamera();
+        audioMgr.getEar().setLocation(player.getWorldLocation());
+        audioMgr.getEar().setOrientation(cam.getN(), new Vector3f(0.0f, 1.0f, 0.0f));
+    }
 
     @Override //Things you want to happen constantly / updates with every frame
     public void update()
@@ -384,6 +438,10 @@ public class myGame extends VariableFrameRateGame
         collectPrize();
         ghostAS.updateAnimation();
 
+        //update sound
+        backgroundMusic.setLocation(player.getWorldLocation());
+        setEarParameters();
+
         processNetworking((float)elapsedTime);
     }//End of update
 
@@ -398,20 +456,26 @@ public class myGame extends VariableFrameRateGame
     public GhostManager getGhostManager() { return gm; }
 
     private void setupNetworking()
-    {	isClientConnected = false;
-        try {
+    {
+        isClientConnected = false;
+        try
+        {
             protClient = new ProtocolClient(InetAddress.getByName(serverAddress), serverPort, serverProtocol, this);
         }
-        catch (UnknownHostException e) {
+        catch (UnknownHostException e)
+        {
             e.printStackTrace();
         }
-        catch (IOException e) {
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
-        if (protClient == null) {
+        if (protClient == null)
+        {
             System.out.println("missing protocol host");
         }
-        else {	// Send the initial join message with a unique identifier for this client
+        else
+        {	// Send the initial join message with a unique identifier for this client
             System.out.println("sending join message to protocol host");
             protClient.sendJoinMessage();
         }

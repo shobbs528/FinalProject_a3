@@ -2,6 +2,8 @@ package tage.networking.client;
 
 import tage.networking.AbstractGameConnection;
 
+import java.io.IOException;
+
 /**
  * Abstract class to define the protected methods necessary for a game
  * connection client.
@@ -26,10 +28,14 @@ public abstract class AbstractGameConnectionClient extends
 	 */
 	protected abstract void startClient();
 
-	/**
+    public abstract void shutdown() throws IOException;
+
+    /**
 	 * Creates the Thread responsible for receiving packets by the client.
 	 * 
 	 * @return the Thread which receives network packets
 	 */
 	protected abstract Thread createReceivePacketsThread();
+
+	public abstract int getLocalPort();
 }

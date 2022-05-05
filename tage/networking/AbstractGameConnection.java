@@ -18,7 +18,7 @@ import java.util.Enumeration;
  * Ported to TAGE by Scott Gordon.
  * 
  */
-public abstract class AbstractGameConnection implements tage.networking.IGameConnection {
+public abstract class AbstractGameConnection implements tage.networking.server.IGameConnection {
 	/**
 	 * A method to get the local IP address. This will return the default IP;
 	 * meaning if the machine is connected to more than one network the returned
