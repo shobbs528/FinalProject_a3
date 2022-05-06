@@ -10,6 +10,7 @@ import org.joml.*;
 
 import tage.*;
 import tage.networking.client.GameConnectionClient;
+import tage.networking.server.IGameConnection;
 
 public class ProtocolClient extends GameConnectionClient
 {
@@ -17,13 +18,13 @@ public class ProtocolClient extends GameConnectionClient
 	private GhostManager ghostManager;
 	private UUID id;
 	
-	public ProtocolClient(InetAddress remoteAddr, int remotePort, ProtocolType protocolType, myGame game) throws IOException 
+	public ProtocolClient(InetAddress remoteAddr, int remotePort, IGameConnection.ProtocolType protocolType, myGame game) throws IOException
 	{	super(remoteAddr, remotePort, protocolType);
 		this.game = game;
 		this.id = UUID.randomUUID();
 		ghostManager = game.getGhostManager();
 	}
-	
+
 	public UUID getID() { return id; }
 	
 	@Override
@@ -129,7 +130,7 @@ public class ProtocolClient extends GameConnectionClient
 		{	e.printStackTrace();
 	}	}
 	
-	// Informs the server of the client’s Avatar’s position. The server 
+	// Informs the server of the client?s Avatar?s position. The server
 	// takes this message and forwards it to all other clients registered 
 	// with the server.
 	// Message Format: (create,localId,x,y,z) where x, y, and z represent the position

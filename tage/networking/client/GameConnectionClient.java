@@ -1,5 +1,7 @@
 package tage.networking.client;
 
+import tage.networking.server.IGameConnection;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.Serializable;
@@ -39,7 +41,7 @@ public class GameConnectionClient extends AbstractGameConnectionClient {
 	 *            the protocol type to be used.
 	 * @throws IOException
 	 */
-	public GameConnectionClient(ProtocolType protocolType) throws IOException {
+	public GameConnectionClient(IGameConnection.ProtocolType protocolType) throws IOException {
 		switch (protocolType) {
 		case UDP:
 			clientSocket = new UDPClientSocket();
@@ -67,7 +69,7 @@ public class GameConnectionClient extends AbstractGameConnectionClient {
 	 * @throws IOException
 	 */
 	public GameConnectionClient(InetAddress remoteAddr, int remotePort,
-			ProtocolType protocolType) throws IOException {
+			IGameConnection.ProtocolType protocolType) throws IOException {
 		switch (protocolType) {
 		case UDP:
 			clientSocket = new UDPClientSocket(remoteAddr, remotePort);
@@ -102,7 +104,7 @@ public class GameConnectionClient extends AbstractGameConnectionClient {
 	 * @throws IOException
 	 */
 	public GameConnectionClient(InetAddress remoteAddr, int remotePort,
-			InetAddress localAddr, int localPort, ProtocolType protocolType)
+			InetAddress localAddr, int localPort, IGameConnection.ProtocolType protocolType)
 			throws IOException {
 		switch (protocolType) {
 		case UDP:

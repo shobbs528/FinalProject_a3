@@ -1,6 +1,6 @@
 package tage.networking.client;
 
-import tage.networking.IGameConnection;
+import tage.networking.server.IGameConnection;
 
 import java.io.IOException;
 import java.io.Serializable;

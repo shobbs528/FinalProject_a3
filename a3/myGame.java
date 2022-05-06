@@ -1,10 +1,12 @@
 package a3;
 //Samantha Trevino and Sean Hobson
 //Spring '22, CSC 165, Final Project
+
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import tage.*;
-import tage.networking.IGameConnection;
+import tage.audio.*;
+import tage.networking.server.IGameConnection;
 import tage.physics.PhysicsEngineFactory;
 import tage.shapes.*;
 import java.lang.Math;
@@ -27,12 +29,13 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.*;
 import javax.script.Invocable;
+
 //Physics imports
 import tage.physics.PhysicsEngine;
 import tage.physics.PhysicsObject;
 import tage.physics.JBullet.*;
 
-import static tage.Utils.toDoubleArray;
+import static tage.Utils.*;
 
 public class myGame extends VariableFrameRateGame
 {
@@ -63,6 +66,10 @@ public class myGame extends VariableFrameRateGame
 
     private int skyboxTexture; // skyboxes
 
+    //Sound variables
+    private IAudioManager audioMgr;
+    private Sound backgroundMusic, GhostDying, CarStartup, CarDriving;
+
     //Networking variables.
     private GhostManager gm;
     private String serverAddress;
@@ -70,10 +77,12 @@ public class myGame extends VariableFrameRateGame
     private IGameConnection.ProtocolType serverProtocol;
     private ProtocolClient protClient;
     private boolean isClientConnected = false;
+
     //Script variables.
     private File scriptFile2, scriptFile3;
     private long fileLastModifiedTime = 0;
     ScriptEngine jsEngine;
+
     //Variables for physics
     private GameObject ball1, ball2;
     private PhysicsEngine physicsEngine;
@@ -81,6 +90,7 @@ public class myGame extends VariableFrameRateGame
     private PhysicsObject ball1P, ball2P, planeP, playerP;
     private boolean running = false;
     private float vals[] = new float[16];
+
     //Animation Variables---------------------------------------
     private AnimatedShape carAS;
     private AnimatedShape ghostAS;
@@ -308,7 +318,6 @@ public class myGame extends VariableFrameRateGame
         scriptFile3 = new File("assets/scripts/UpdateLightColor.js");
         this.runScript(scriptFile3);
 
-
         //------------- PHYSICS --------------
         // --- initialize physics system ---
         String engine = "tage.physics.JBullet.JBulletPhysicsEngine";
@@ -340,6 +349,7 @@ public class myGame extends VariableFrameRateGame
         planeP.setBounciness(1.0f);
         ground.setPhysicsObject(planeP);
 
+        initAudio();
 
     } //-----End of initializeGame -----
 
@@ -347,7 +357,6 @@ public class myGame extends VariableFrameRateGame
     @Override //Things you want to happen constantly / updates with every frame
     public void update()
     {
-
         double totalTime = System.currentTimeMillis() - startTime;
         elapsedTime = System.currentTimeMillis() - prevTime;
         prevTime = System.currentTimeMillis();
@@ -363,8 +372,10 @@ public class myGame extends VariableFrameRateGame
          float height = ground.getHeight(loc.x(), loc.z()); 
          player.setLocalLocation(new Vector3f(loc.x(), height, loc.z()));
          updateLight();
+
         // update physics
-        if (running) {
+        if (running)
+        {
             Matrix4f mat = new Matrix4f();
             Matrix4f mat2 = new Matrix4f().identity();
             checkForCollisions();
@@ -372,8 +383,8 @@ public class myGame extends VariableFrameRateGame
             for (GameObject go:engine.getSceneGraph().getGameObjects())
             {
                 if (go.getPhysicsObject() != null)
-                {	mat.set(Utils.toFloatArray(go.getPhysicsObject().getTransform()));
-
+                {
+                    mat.set(Utils.toFloatArray(go.getPhysicsObject().getTransform()));
                     mat2.set(3,0,mat.m30()); mat2.set(3,1,mat.m31()); mat2.set(3,2,mat.m32());
                     go.setLocalTranslation(mat2);
                 }
@@ -384,8 +395,70 @@ public class myGame extends VariableFrameRateGame
         collectPrize();
         ghostAS.updateAnimation();
 
+        //update sound
+        backgroundMusic.setLocation(player.getWorldLocation());
+        setEarParameters();
+
         processNetworking((float)elapsedTime);
     }//End of update
+    //--------------------------------SOUND SECTION--------------------------
+    public void initAudio()
+    {
+        AudioResource resource1, resource2, resource3, resource4;
+        audioMgr = AudioManagerFactory.createAudioManager("tage.audio.joal.JOALAudioManager");
+        if (!audioMgr.initialize())
+        {
+            System.out.println("Audio Manager could not initialize.");
+            return;
+        }
+        resource1 = audioMgr.createAudioResource("assets/sounds/BackgroundMusic.wav", AudioResourceType.AUDIO_SAMPLE);
+        resource2 = audioMgr.createAudioResource("assets/sounds/CarDriving.wav", AudioResourceType.AUDIO_SAMPLE);
+        resource3 = audioMgr.createAudioResource("assets/sounds/GhostDying.wav", AudioResourceType.AUDIO_SAMPLE);
+        resource4 = audioMgr.createAudioResource("assets/sounds/StartupSound.wav", AudioResourceType.AUDIO_SAMPLE);
+
+        backgroundMusic = new Sound(resource1, SoundType.SOUND_MUSIC, 100, true);
+        GhostDying = new Sound(resource3, SoundType.SOUND_EFFECT, 100, false);
+        CarStartup = new Sound(resource4, SoundType.SOUND_EFFECT, 100, false);
+        CarDriving = new Sound(resource2, SoundType.SOUND_EFFECT, 100, false);
+
+        backgroundMusic.initialize(audioMgr);
+        GhostDying.initialize(audioMgr);
+        CarStartup.initialize(audioMgr);
+        CarDriving.initialize(audioMgr);
+
+        backgroundMusic.setMaxDistance(20.0f);
+        backgroundMusic.setMinDistance(0.2f);
+        backgroundMusic.setRollOff(5.0f);
+
+        CarStartup.setMaxDistance(20.0f);
+        CarStartup.setMinDistance(0.2f);
+        CarStartup.setRollOff(5.0f);
+
+        CarStartup.setLocation(player.getWorldLocation());
+        setEarParameters();
+        CarStartup.play();
+
+        try
+        {
+            Thread.sleep(5000);
+        }
+        catch(InterruptedException ie)
+        {
+            Thread.currentThread().interrupt();
+        }
+
+        backgroundMusic.setLocation(player.getWorldLocation());
+        setEarParameters();
+
+        backgroundMusic.play();
+    }
+    public void setEarParameters()
+    {
+        Camera cam = (engine.getRenderSystem()).getViewport("MAIN").getCamera();
+        audioMgr.getEar().setLocation(player.getWorldLocation());
+        audioMgr.getEar().setOrientation(cam.getN(), new Vector3f(0.0f, 1.0f, 0.0f));
+    }
+    //---------------------------------END OF SOUND SECTION------------------------
 
     public void updateLight()
     {
@@ -398,20 +471,26 @@ public class myGame extends VariableFrameRateGame
     public GhostManager getGhostManager() { return gm; }
 
     private void setupNetworking()
-    {	isClientConnected = false;
-        try {
+    {
+        isClientConnected = false;
+        try
+        {
             protClient = new ProtocolClient(InetAddress.getByName(serverAddress), serverPort, serverProtocol, this);
         }
-        catch (UnknownHostException e) {
+        catch (UnknownHostException e)
+        {
             e.printStackTrace();
         }
-        catch (IOException e) {
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
-        if (protClient == null) {
+        if (protClient == null)
+        {
             System.out.println("missing protocol host");
         }
-        else {	// Send the initial join message with a unique identifier for this client
+        else
+        {	// Send the initial join message with a unique identifier for this client
             System.out.println("sending join message to protocol host");
             protClient.sendJoinMessage();
         }
@@ -457,13 +536,12 @@ public class myGame extends VariableFrameRateGame
         String scoreStr = Integer.toString(score);
         String dispStr1 = "Time = " + elapsTimeStr;
         String dispStr2 = "Score = " + scoreStr;
-        String dolLoc = "Dolphin position = X: "+ (int) player.getWorldLocation().x
+        String dolLoc = "Player position = X: "+ (int) player.getWorldLocation().x
                                            + ", Y: " + (int)player.getWorldLocation().y
                                            + ", Z: " + (int) player.getWorldLocation().z;
         Vector3f hud1Color = new Vector3f(0,1,0);
         Vector3f hud2Color = new Vector3f(0,0,1);
         Vector3f hudHealthColor = new Vector3f(1, 0, 0);
-        Vector3f hud4Color = new Vector3f(1,0,1);
 
         int w = (int) engine.getRenderSystem().getViewport("MAIN").getActualWidth();
         int mapWidth = (int) engine.getRenderSystem().getViewport("MAP").getActualWidth();
@@ -505,38 +583,31 @@ public class myGame extends VariableFrameRateGame
             ghostAS.stopAnimation();
             ghostAS.playAnimation("WALK", 0.05f, AnimatedShape.EndType.LOOP, 0);
             break;
-
         case KeyEvent.VK_B:
              carAS.stopAnimation();
              carAS.playAnimation("BACK_ST", 0.2f, AnimatedShape.EndType.LOOP, 0);
              break;
-
         case KeyEvent.VK_H:
             ghostAS.stopAnimation();
             break;
-
             //Move Player forward
         case KeyEvent.VK_W:
                 dolFwd = player.getWorldForwardVector();
                 dolLoc = player.getWorldLocation();
                 player.setLocalLocation(dolLoc.add(dolFwd.mul(0.4f)));
-            break;
-
+                break;
         case KeyEvent.VK_A:
                   //Key turns Player
                 player.objectYaw(player, 0.03f)
                 ;break;
-
         case KeyEvent.VK_S: //Move Player backwards, same as forward but negative
                 dolFwd = player.getWorldForwardVector();
                 dolLoc = player.getWorldLocation();
                 player.setLocalLocation(dolLoc.add(dolFwd.mul(-0.4f)));
                 break;
-
         case KeyEvent.VK_D:
                 player.objectYaw(player, -0.06f);
                 break;
-
         case KeyEvent.VK_SPACE:
                 toggleAxes();
                 //--------------Script Light stuff
@@ -564,7 +635,7 @@ public class myGame extends VariableFrameRateGame
         super.keyPressed(e);
     }
 
-    public void collectPrize()
+    public void collectPrize() //Also known as collision
     {
         Vector3f dolLoc = player.getWorldLocation();
         float d = Math.abs(dolLoc.distance(prize.getWorldLocation()));
@@ -574,16 +645,25 @@ public class myGame extends VariableFrameRateGame
         float randZ = -10.0f + rand.nextFloat() * (10.0f-(-10.0f));
         if(d <= 1.0f)
         {
+            GhostDying.setLocation(player.getWorldLocation());
+            setEarParameters();
+            GhostDying.play();
             score +=1;
             prize.setLocalLocation(new Vector3f(randX, 0.5f, randZ));
         }
         else if(d2 <= 1.0f)
         {
+            GhostDying.setLocation(player.getWorldLocation());
+            setEarParameters();
+            GhostDying.play();
             score +=1;
             prize2.setLocalLocation(new Vector3f(randX, 0.5f, randZ));
         }
         else if (d3 <= 1.0f)
         {
+            GhostDying.setLocation(player.getWorldLocation());
+            setEarParameters();
+            GhostDying.play();
             score +=1;
             prize3.setLocalLocation(new Vector3f(randX, 0.5f, randZ));
         }

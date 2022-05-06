@@ -1,6 +1,6 @@
 package tage.networking.server;
 
-import tage.networking.IGameConnection;
+import tage.networking.server.IGameConnection;
 
 import java.net.InetAddress;
 
