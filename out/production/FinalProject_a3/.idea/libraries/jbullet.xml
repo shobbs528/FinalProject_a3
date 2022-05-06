@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="jbullet">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../../../../javagaming/jbullet/jbullet.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../../../../javagaming/jinput/jinput.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../../../../javagaming/jogl/gluegen-rt.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../../../../javagaming/jogl/joal.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../../../../javagaming/jogl/jogl-all.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../../../../javagaming/joml/joml-1.10.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../../../../javagaming/vecmath/vecmath.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

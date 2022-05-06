@@ -1,0 +1,1 @@
+java -Dsun.java2d.d3d=false -Dsun.java2d.uiScale=1 myGame.MyGame 192.168.1.65 6000 UDP
