@@ -86,14 +86,14 @@ public class myGame extends VariableFrameRateGame
     private TextureImage npcTex;
 
 
-    public myGame()
+    public myGame(String serverAddress, int serverPort, String protocol)
     {
-        //String serverAddress, int serverPort, String protocol
+        //String serverAddress, int serverPort, String protocol, add or subtract this statement to add or remove networking
         super();
         gm = new GhostManager(this);
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
-        String protocol = "TCP";
+       // String protocol = "TCP"; this was for testing
         if (protocol.toUpperCase().compareTo("TCP") == 0)
             this.serverProtocol = IGameConnection.ProtocolType.TCP;
         else
@@ -102,8 +102,8 @@ public class myGame extends VariableFrameRateGame
 
     public static void main(String[] args)
     {
-        //myGame game = new myGame(args[0], Integer.parseInt(args[1]), args[2]);
-        myGame game = new myGame();
+        myGame game = new myGame(args[0], Integer.parseInt(args[1]), args[2]);
+        //myGame game = new myGame();
         engine = new Engine(game);
         //Script code
         ScriptEngineManager factory = new ScriptEngineManager();

@@ -1,7 +1,9 @@
-package tage.networking.server;
+package tage.networking;
+
+import tage.networking.server.GameAIServerUDP;
+import tage.networking.server.NPCcontroller;
 
 import java.io.IOException;
-import tage.networking.IGameConnection.ProtocolType;
 
 public class NetworkingServer 
 {
