@@ -51,13 +51,11 @@ public class myGame extends VariableFrameRateGame
     private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, modelGhost;
     private TextureImage doltx, groundT, ghostT, hills, ghostModelT, carTexture;
     private Light ambLight, dirLight;
-    private NodeController rc, bc;
+    private NodeController bc;
     private double deltaTime, prevTime, elapsedTime, amt; //variables for speed movement based on time
 
     private boolean onDolphin, axesOn;
     private Vector3f dolFwd, dolLoc;
-    private Matrix4f currentT;
-
     private InputManager im;
     public Random rand = new Random();
 
@@ -93,14 +91,14 @@ public class myGame extends VariableFrameRateGame
     private AnimatedShape ghostAS;
 
 
-    public myGame()
+    public myGame(String serverAddress, int serverPort, String protocol)
     {
         //String serverAddress, int serverPort, String protocol
         super();
         gm = new GhostManager(this);
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
-        String protocol = "TCP";
+       // String protocol = "TCP";
         if (protocol.toUpperCase().compareTo("TCP") == 0)
             this.serverProtocol = IGameConnection.ProtocolType.TCP;
         else
@@ -109,8 +107,8 @@ public class myGame extends VariableFrameRateGame
 
     public static void main(String[] args)
     {
-        //myGame game = new myGame(args[0], Integer.parseInt(args[1]), args[2]);
-        myGame game = new myGame();
+        myGame game = new myGame(args[0], Integer.parseInt(args[1]), args[2]);
+       // myGame game = new myGame(); Swap these two game calls to turn off and on the network this allows it to run in intellij
         engine = new Engine(game);
         //Script code
         ScriptEngineManager factory = new ScriptEngineManager();
@@ -286,7 +284,7 @@ public class myGame extends VariableFrameRateGame
         cam3D = new CameraOrbit3D (cam, player, im.getFirstGamepadName(), engine, this);
 
         //------------- Other Inputs Section -----------------
-        //setupNetworking();
+        setupNetworking();
         FwdAction fwdAction = new FwdAction(this, protClient);
         TurnAction turnAction = new TurnAction(this);
 
@@ -390,6 +388,7 @@ public class myGame extends VariableFrameRateGame
         im.update((float)elapsedTime);
         collectPrize();
         ghostAS.updateAnimation();
+        protClient.sendMoveMessage(player.getWorldLocation());
 
         //update sound
         backgroundMusic.setLocation(player.getWorldLocation());
