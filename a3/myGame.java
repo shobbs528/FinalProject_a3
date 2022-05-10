@@ -54,7 +54,7 @@ public class myGame extends VariableFrameRateGame
     private NodeController rc, bc;
     private double deltaTime, prevTime, elapsedTime, amt; //variables for speed movement based on time
 
-    private boolean onDolphin, axesOn;
+    private boolean onDolphin, axesOn, toggleLight;
     private Vector3f dolFwd, dolLoc;
 
     private InputManager im;
@@ -612,6 +612,11 @@ public class myGame extends VariableFrameRateGame
         case KeyEvent.VK_H:
             ghostAS.stopAnimation();
             break;
+
+        case KeyEvent.VK_L:
+             toggleLight();
+            break;
+
             //Move Player forward
         case KeyEvent.VK_W:
                 dolFwd = player.getWorldForwardVector();
@@ -701,7 +706,18 @@ public class myGame extends VariableFrameRateGame
         powerup.getRenderStates().disableRendering();
         score +=3;
     }
+    public void toggleLight()
+    {
+        if(toggleLight) {
+            ambLight.setAmbient(0.0f, 0.0f, 0.0f);
+            toggleLight = false;
+        }
+        else {
+            ambLight.setAmbient(0.0f, 0.5f, 1.0f);
+            toggleLight = true;
+        }
 
+    }
 
     //Script method for 7a
     private void executeScript(ScriptEngine engine, String scriptFileName)
