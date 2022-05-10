@@ -16,7 +16,6 @@ import java.net.UnknownHostException;
 import tage.input.InputManager;
 import tage.input.action.AbstractInputAction;
 import tage.nodeControllers.BounceController;
-import tage.nodeControllers.RotationController;
 
 import java.awt.event.KeyEvent;
 import java.io.IOException;
@@ -42,22 +41,22 @@ public class myGame extends VariableFrameRateGame
     private static Engine engine;
     private Camera cam;
     private CameraOrbit3D cam3D;
-
     public static Engine getEngine() { return engine; }
 
-    private int score;
-    private double startTime;
+    private int score, min;
+    private double startTime, second;
 
     private GameObject player, x, y, z;
     private GameObject prize, prize2, prize3, ground;
     private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, modelGhost;
-    private TextureImage groundT, ghostT, hills, ghostModelT, carTexture, graveTexture;
+    private TextureImage doltx, groundT, ghostT, hills, ghostModelT, carTexture;
     private Light ambLight, dirLight;
-    private NodeController bc;
+    private NodeController rc, bc;
     private double deltaTime, prevTime, elapsedTime, amt; //variables for speed movement based on time
 
     private boolean onDolphin, axesOn;
     private Vector3f dolFwd, dolLoc;
+    private Matrix4f currentT;
 
     private InputManager im;
     public Random rand = new Random();
@@ -85,7 +84,7 @@ public class myGame extends VariableFrameRateGame
     private GameObject ball1, ball2;
     private PhysicsEngine physicsEngine;
     private JBulletPhysicsEngine jBulletPE;
-    private PhysicsObject ball1P, ball2P, planeP;
+    private PhysicsObject ball1P, ball2P, planeP, playerP;
     private boolean running = false;
     private float vals[] = new float[16];
 
@@ -165,14 +164,12 @@ public class myGame extends VariableFrameRateGame
         ghostModelT = new TextureImage("ghostTexture.png");
         //Car model texture
         carTexture = new TextureImage("carUVText.png");
-        graveTexture = new TextureImage("stone-texture.jpg");
     }
 
     @Override
     public void buildObjects()
     {	Matrix4f initialTranslation, initialScale, initialRotation;
         deltaTime = 0.0f;
-       // prevTime = 0.0f;
         // build player in the center of the window
         player = new GameObject(GameObject.root(), playerS, carTexture);
         initialTranslation = (new Matrix4f()).translation(0,0.0f,0);
@@ -204,15 +201,15 @@ public class myGame extends VariableFrameRateGame
         //-------------Ground object-------------------------
         ground = new GameObject(GameObject.root(), groundS, groundT);
         ground.setLocalTranslation((new Matrix4f()).translation(0,0,0));
-        ground.setLocalScale((new Matrix4f()).scaling(30.0f));
+        ground.setLocalScale((new Matrix4f()).scaling(15.0f));
         ground.setHeightMap(hills);
 
         //physics test ball 1
-        ball1 = new GameObject(GameObject.root(), new Sphere(), graveTexture);
+        ball1 = new GameObject(GameObject.root(), new Sphere(), doltx);
         ball1.setLocalTranslation((new Matrix4f()).translation(0.0f, 4.0f, 0.0f));
         ball1.setLocalScale((new Matrix4f()).scaling(0.50f));
         //physics test ball 2
-        ball2 = new GameObject(GameObject.root(), new Sphere(), graveTexture);
+        ball2 = new GameObject(GameObject.root(), new Sphere(), doltx);
         ball2.setLocalTranslation((new Matrix4f()).translation(-0.5f, 1.0f, 0.0f));
         ball2.setLocalScale((new Matrix4f()).scaling(0.50f));
 
@@ -259,6 +256,7 @@ public class myGame extends VariableFrameRateGame
         (engine.getRenderSystem()).setWindowDimensions(1900,1000);
         score = 0;
         onDolphin = true;
+        min = 5;
 
         // -------------- adding node controllers -----------
         bc = new BounceController(engine, 1.0f);
@@ -355,15 +353,15 @@ public class myGame extends VariableFrameRateGame
     @Override //Things you want to happen constantly / updates with every frame
     public void update()
     {
-        double totalTime = System.currentTimeMillis() - startTime;
+        int elapsTimeSec = Math.round((float)(System.currentTimeMillis()-startTime)/1000.0f);
         elapsedTime = System.currentTimeMillis() - prevTime;
         prevTime = System.currentTimeMillis();
         amt = elapsedTime * 0.03;
-        double amtt = totalTime * 0.001;
+        //double amtt = totalTime * 0.001;
 
         // build and set HUD
         cam = (engine.getRenderSystem().getViewport("MAIN").getCamera());
-        hudManagement((int) totalTime);
+        hudManagement(elapsTimeSec);
 
         //Terrain height stuff.
          Vector3f loc = player.getWorldLocation();
@@ -530,25 +528,39 @@ public class myGame extends VariableFrameRateGame
 
     public void hudManagement(int sec)
     {
-        String elapsTimeStr = Integer.toString(sec);
+        //String elapsTimeStr = Integer.toString(sec);
+        String elapsTimeStr = time(sec);
         String scoreStr = Integer.toString(score);
-        String dispStr1 = "Time = " + elapsTimeStr;
+        String dispStr1 = "Timer = " + elapsTimeStr;
         String dispStr2 = "Score = " + scoreStr;
-        String dolLoc = "Player position = X: "+ (int) player.getWorldLocation().x
-                                           + ", Y: " + (int)player.getWorldLocation().y
-                                           + ", Z: " + (int) player.getWorldLocation().z;
+        //We don't really need the player position
+      //  String dolLoc = "Player position = X: "+ (int) player.getWorldLocation().x
+        //                                   + ", Y: " + (int)player.getWorldLocation().y
+        //                                   + ", Z: " + (int) player.getWorldLocation().z;
         Vector3f hud1Color = new Vector3f(0,1,0);
         Vector3f hud2Color = new Vector3f(0,0,1);
-        Vector3f hudHealthColor = new Vector3f(1, 0, 0);
+     //   Vector3f hudHealthColor = new Vector3f(1, 0, 0); //red
 
         int w = (int) engine.getRenderSystem().getViewport("MAIN").getActualWidth();
         int mapWidth = (int) engine.getRenderSystem().getViewport("MAP").getActualWidth();
         int miniMap = w - mapWidth;
 
         (engine.getHUDmanager()).setHUD1(dispStr1, hud1Color, 0, 15);
-        (engine.getHUDmanager()).setHUD2(dispStr2, hud2Color, 175, 15);
+        (engine.getHUDmanager()).setHUD2(dispStr2, hud2Color, 300, 15);
        // (engine.getHUDmanager()).setHUD3(disHealth, hudHealthColor, 350, 15);
-        (engine.getHUDmanager()).setHUD4(dolLoc, hudHealthColor, miniMap+10, 15);
+       // (engine.getHUDmanager()).setHUD4(dolLoc, hudHealthColor, miniMap+10, 15);
+    }
+    //Creates a countdown timer
+    public String time(int sec)
+    {
+        String timer;
+        if(sec < 60)
+        {
+            return timer = "0 mins "+sec+" secs";
+        }
+        second = sec / 60;
+        timer = second + " minutes";
+        return timer;
     }
 
     @Override
