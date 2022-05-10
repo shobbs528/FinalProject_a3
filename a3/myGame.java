@@ -48,7 +48,7 @@ public class myGame extends VariableFrameRateGame
 
     private GameObject player, x, y, z;
     private GameObject prize, prize2, prize3, ground, grave1;
-    private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, modelGhost, grave1S;
+    private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, modelGhost, grave1S, wall;
     private TextureImage doltx, groundT, ghostT, hills, ghostModelT, carTexture;
     private Light ambLight, dirLight;
     private NodeController rc, bc;
@@ -78,10 +78,10 @@ public class myGame extends VariableFrameRateGame
     ScriptEngine jsEngine;
 
     //Variables for physics
-    private GameObject ball1, ball2, playerWall;
+    private GameObject ball1, ball2, playerWall, lWall, rWall, fWall, bWall;
     private PhysicsEngine physicsEngine;
     private JBulletPhysicsEngine jBulletPE;
-    private PhysicsObject ball1P, ball2P, planeP, playerP, graveP;
+    private PhysicsObject ball1P, ball2P, planeP, playerP, graveP, lWallP, rWallP, fWallP, bWallP;
     private boolean running = false;
     private float vals[] = new float[16];
 
@@ -148,6 +148,7 @@ public class myGame extends VariableFrameRateGame
         ghostAS.loadAnimation("WALK", "ghost.rka");
 
         grave1S = new ImportedModel("grave1.obj");
+        wall = new ImportedModel("wall.obj");
 
     }
 
@@ -200,12 +201,27 @@ public class myGame extends VariableFrameRateGame
         //-------------Ground object-------------------------
         ground = new GameObject(GameObject.root(), groundS, groundT);
         ground.setLocalTranslation((new Matrix4f()).translation(0,0,0));
-        ground.setLocalScale((new Matrix4f()).scaling(15.0f));
+        ground.setLocalScale((new Matrix4f()).scaling(30.0f));
         ground.setHeightMap(hills);
+
+        lWall = new GameObject(GameObject.root(), wall, groundT);
+        rWall = new GameObject(GameObject.root(), wall, groundT);
+        fWall = new GameObject(GameObject.root(), wall, groundT);
+        bWall = new GameObject(GameObject.root(), wall, groundT);
+
+        lWall.setLocalTranslation((new Matrix4f()).translation(-35.0f,0.0f,0));
+        lWall.setLocalScale((new Matrix4f()).scaling(10.0f));
+        lWall.setLocalRotation((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(90f)));
+        rWall.setLocalTranslation((new Matrix4f()).translation(35.0f,0.0f,0));
+        rWall.setLocalScale((new Matrix4f()).scaling(10.0f));
+        rWall.setLocalRotation((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(90f)));
+        fWall.setLocalTranslation((new Matrix4f()).translation(0.0f,0.0f,-35.0f));
+        fWall.setLocalScale((new Matrix4f()).scaling(10.0f));
+        bWall.setLocalTranslation((new Matrix4f()).translation(0.0f,0.0f,35.0f));
+        bWall.setLocalScale((new Matrix4f()).scaling(10.0f));
 
         grave1 = new GameObject(GameObject.root(), grave1S);
         grave1.setLocalTranslation((new Matrix4f()).translation(-5,0.0f,8));
-
 
         //physics test ball 1
         ball1 = new GameObject(GameObject.root(), new Sphere(), doltx);
@@ -215,10 +231,6 @@ public class myGame extends VariableFrameRateGame
         ball2 = new GameObject(GameObject.root(), new Sphere(), doltx);
         ball2.setLocalTranslation((new Matrix4f()).translation(-0.5f, 1.0f, 0.0f));
         ball2.setLocalScale((new Matrix4f()).scaling(0.50f));
-
-        playerWall = new GameObject(GameObject.root(), new Cube());
-        playerWall.setLocalLocation(player.getWorldLocation());
-        playerWall.setParent(player);
 
         //Axes lines
         x = new GameObject(GameObject.root(), linxS);
@@ -352,12 +364,36 @@ public class myGame extends VariableFrameRateGame
         planeP.setBounciness(1.0f);
         ground.setPhysicsObject(planeP);
 
-        float upVari[] = {1,0,1};
-        translation = new Matrix4f(player.getLocalTranslation());
+        float upVari[] = {1,0,0};
+      //  translation = new Matrix4f(player.getLocalTranslation());
+     //   tempTransform = toDoubleArray(translation.get(vals));
+     //   playerP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), tempTransform, upVari, 0.0f);
+    //    playerP.setBounciness(1.0f);
+       // playerWall.setPhysicsObject(playerP);
+
+        translation = new Matrix4f(lWall.getLocalTranslation());
         tempTransform = toDoubleArray(translation.get(vals));
-        playerP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), tempTransform, upVari, 0.0f);
-        playerP.setBounciness(1.0f);
-        playerWall.setPhysicsObject(playerP);
+        lWallP = physicsEngine.addBoxObject(physicsEngine.nextUID(), 10.0f, tempTransform, new float[]{3.0f, 10.0f,10.0f});
+        lWallP.setBounciness(0.0f);
+        lWall.setPhysicsObject(lWallP);
+
+      /*translation = new Matrix4f(rWall.getLocalTranslation());
+        tempTransform = toDoubleArray(translation.get(vals));
+        rWallP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), tempTransform, upVari, 0.0f);
+        rWallP.setBounciness(0.0f);
+        rWall.setPhysicsObject(rWallP);
+
+        translation = new Matrix4f(fWall.getLocalTranslation());
+        tempTransform = toDoubleArray(translation.get(vals));
+        fWallP = physicsEngine.addStaticPlaneObject()
+        fWallP.setBounciness(0.0f);
+        fWall.setPhysicsObject(fWallP);
+
+        translation = new Matrix4f(bWall.getLocalTranslation());
+        tempTransform = toDoubleArray(translation.get(vals));
+        bWallP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), tempTransform, upVari, 0.0f);
+        bWallP.setBounciness(0.0f);
+       bWall.setPhysicsObject(bWallP);*/
 
         translation = new Matrix4f(grave1.getLocalTranslation());
         tempTransform = toDoubleArray(translation.get(vals));
