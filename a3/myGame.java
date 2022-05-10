@@ -158,7 +158,6 @@ public class myGame extends VariableFrameRateGame
     @Override
     public void loadTextures()
     {
-        doltx = new TextureImage("Dolphin_HighPolyUV.png");
         //For terrain
         hills = new TextureImage("hills.jpg"); 
         groundT = new TextureImage("grass.jpg");
