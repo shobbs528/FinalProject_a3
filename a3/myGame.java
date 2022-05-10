@@ -389,6 +389,7 @@ public class myGame extends VariableFrameRateGame
         collectPrize();
         ghostAS.updateAnimation();
         protClient.sendMoveMessage(player.getWorldLocation());
+        //protClient.sendMoveMessage((Vector3f) player.getWorldRotation()); ??
 
         //update sound
         backgroundMusic.setLocation(player.getWorldLocation());
