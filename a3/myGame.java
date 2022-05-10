@@ -206,7 +206,7 @@ public class myGame extends VariableFrameRateGame
         //-------------Ground object-------------------------
         ground = new GameObject(GameObject.root(), groundS, groundT);
         ground.setLocalTranslation((new Matrix4f()).translation(0,0,0));
-        ground.setLocalScale((new Matrix4f()).scaling(15.0f));
+        ground.setLocalScale((new Matrix4f()).scaling(30.0f));
         ground.setHeightMap(hills);
 
         //physics test ball 1
