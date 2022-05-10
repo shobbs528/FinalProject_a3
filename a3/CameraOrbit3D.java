@@ -63,7 +63,6 @@ public class CameraOrbit3D
 
     }
 
-
     // Updates the camera position by computing its azimuth, elevation, and distance
     // relative to the target in spherical coordinates, then converting those spherical
     // coords to world Cartesian coordinates and setting the camera position from that.
