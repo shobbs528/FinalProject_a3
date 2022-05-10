@@ -42,7 +42,6 @@ public class myGame extends VariableFrameRateGame
     private static Engine engine;
     private Camera cam;
     private CameraOrbit3D cam3D;
-
     public static Engine getEngine() { return engine; }
 
     private int score;
@@ -51,13 +50,14 @@ public class myGame extends VariableFrameRateGame
     private GameObject player, x, y, z;
     private GameObject prize, prize2, prize3, ground;
     private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, modelGhost;
-    private TextureImage groundT, ghostT, hills, ghostModelT, carTexture, graveTexture;
+    private TextureImage doltx, groundT, ghostT, hills, ghostModelT, carTexture;
     private Light ambLight, dirLight;
-    private NodeController bc;
+    private NodeController rc, bc;
     private double deltaTime, prevTime, elapsedTime, amt; //variables for speed movement based on time
 
     private boolean onDolphin, axesOn;
     private Vector3f dolFwd, dolLoc;
+    private Matrix4f currentT;
 
     private InputManager im;
     public Random rand = new Random();
@@ -85,7 +85,7 @@ public class myGame extends VariableFrameRateGame
     private GameObject ball1, ball2;
     private PhysicsEngine physicsEngine;
     private JBulletPhysicsEngine jBulletPE;
-    private PhysicsObject ball1P, ball2P, planeP;
+    private PhysicsObject ball1P, ball2P, planeP, playerP;
     private boolean running = false;
     private float vals[] = new float[16];
 
@@ -165,7 +165,6 @@ public class myGame extends VariableFrameRateGame
         ghostModelT = new TextureImage("ghostTexture.png");
         //Car model texture
         carTexture = new TextureImage("carUVText.png");
-        graveTexture = new TextureImage("stone-texture.jpg");
     }
 
     @Override
@@ -204,15 +203,15 @@ public class myGame extends VariableFrameRateGame
         //-------------Ground object-------------------------
         ground = new GameObject(GameObject.root(), groundS, groundT);
         ground.setLocalTranslation((new Matrix4f()).translation(0,0,0));
-        ground.setLocalScale((new Matrix4f()).scaling(30.0f));
+        ground.setLocalScale((new Matrix4f()).scaling(15.0f));
         ground.setHeightMap(hills);
 
         //physics test ball 1
-        ball1 = new GameObject(GameObject.root(), new Sphere(), graveTexture);
+        ball1 = new GameObject(GameObject.root(), new Sphere(), doltx);
         ball1.setLocalTranslation((new Matrix4f()).translation(0.0f, 4.0f, 0.0f));
         ball1.setLocalScale((new Matrix4f()).scaling(0.50f));
         //physics test ball 2
-        ball2 = new GameObject(GameObject.root(), new Sphere(), graveTexture);
+        ball2 = new GameObject(GameObject.root(), new Sphere(), doltx);
         ball2.setLocalTranslation((new Matrix4f()).translation(-0.5f, 1.0f, 0.0f));
         ball2.setLocalScale((new Matrix4f()).scaling(0.50f));
 
