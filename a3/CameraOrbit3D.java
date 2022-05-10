@@ -42,12 +42,12 @@ public class CameraOrbit3D
         InputManager im = engine.getInputManager();
                //Change to X rotation, should be left right on the right stick.
         im.associateAction(gp,
-                Component.Identifier.Axis.Z,
+                Component.Identifier.Axis.RX,
                 azmAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
                 
                 //Change to Rotation Y should be up/down right stick
         im.associateAction(gp,
-                Component.Identifier.Axis.RZ,
+                Component.Identifier.Axis.RY,
                 elevationAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
                 
                //Maps to B on the Xbox controller.
@@ -56,7 +56,7 @@ public class CameraOrbit3D
                 radiusAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
                 //Maps to A on the Xbox controller.
         im.associateAction(gp,
-                Component.Identifier.Button._1,
+                Component.Identifier.Button._3,
                 zoomIn, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 
 
