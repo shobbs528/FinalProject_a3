@@ -27,8 +27,6 @@ public class CameraOrbit3D
         cameraElevation = 20.0f;	// elevation is in degrees
         cameraRadius = 4.0f;		// distance from camera to avatar
         game = g;
-        //returns OnDolphin boolean
-        //If we're on the dolphin, we want this class to control camera movement.
         setupInputs(gpName);
         updateCameraPosition();
 

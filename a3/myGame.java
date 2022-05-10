@@ -47,16 +47,15 @@ public class myGame extends VariableFrameRateGame
     private double startTime, second;
 
     private GameObject player, x, y, z;
-    private GameObject prize, prize2, prize3, ground;
+    private GameObject prize, prize2, prize3, ground, invisibleShape, powerup;
     private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, modelGhost;
     private TextureImage doltx, groundT, ghostT, hills, ghostModelT, carTexture;
-    private Light ambLight, dirLight;
+    private Light ambLight, headLights;
     private NodeController rc, bc;
     private double deltaTime, prevTime, elapsedTime, amt; //variables for speed movement based on time
 
     private boolean onDolphin, axesOn;
     private Vector3f dolFwd, dolLoc;
-    private Matrix4f currentT;
 
     private InputManager im;
     public Random rand = new Random();
@@ -114,12 +113,12 @@ public class myGame extends VariableFrameRateGame
         engine = new Engine(game);
         //Script code
         ScriptEngineManager factory = new ScriptEngineManager();
-        String scriptFileName = "assets/scripts/hello.js";
+        //String scriptFileName = "assets/scripts/UpdateLightColor.js";
 
         // get the JavaScript engine
         ScriptEngine jsEngine = factory.getEngineByName("js");
         // run the script
-        game.executeScript(jsEngine, scriptFileName);
+       // game.executeScript(jsEngine, scriptFileName);
         game.initializeSystem();
         game.game_loop();
     }
@@ -185,7 +184,7 @@ public class myGame extends VariableFrameRateGame
         prize = new GameObject(GameObject.root(),ghostAS, ghostModelT);
         prize.setLocalTranslation((new Matrix4f()).translation(0,0.5f,0));
         prize.setLocalScale((new Matrix4f()).scaling(0.3f));
-        initialRotation = (new Matrix4f()).rotationX((float)java.lang.Math.toRadians(90.0f));
+        initialRotation = (new Matrix4f()).rotationX((float) Math.toRadians(90.0f));
         prize.setLocalRotation(initialRotation);
         //second enemy
         prize2 = new GameObject(GameObject.root(), ghostAS, ghostModelT);
@@ -201,7 +200,7 @@ public class myGame extends VariableFrameRateGame
         //-------------Ground object-------------------------
         ground = new GameObject(GameObject.root(), groundS, groundT);
         ground.setLocalTranslation((new Matrix4f()).translation(0,0,0));
-        ground.setLocalScale((new Matrix4f()).scaling(15.0f));
+        ground.setLocalScale((new Matrix4f()).scaling(30.0f));
         ground.setHeightMap(hills);
 
         //physics test ball 1
@@ -212,6 +211,16 @@ public class myGame extends VariableFrameRateGame
         ball2 = new GameObject(GameObject.root(), new Sphere(), doltx);
         ball2.setLocalTranslation((new Matrix4f()).translation(-0.5f, 1.0f, 0.0f));
         ball2.setLocalScale((new Matrix4f()).scaling(0.50f));
+
+        invisibleShape = new GameObject(GameObject.root(), new Sphere());
+        initialTranslation = (new Matrix4f()).translation(0.5f,1.0f,1.0f);
+        invisibleShape.setLocalTranslation(initialTranslation);
+        invisibleShape.setParent(player);
+        invisibleShape.getRenderStates().disableRendering();
+
+        powerup = new GameObject(GameObject.root(), new Sphere());
+        initialTranslation = (new Matrix4f()).translation(18.0f,1.0f,-12.0f);
+        powerup.setLocalTranslation(initialTranslation);
 
         //Axes lines
         x = new GameObject(GameObject.root(), linxS);
@@ -269,21 +278,25 @@ public class myGame extends VariableFrameRateGame
         //----------------- adding lights -----------------
         Light.setGlobalAmbient(0.3f, 0.3f, 0.3f);
         ambLight = new Light();
-        dirLight = new Light();
+        headLights = new Light();
+        ambLight.setType(Light.LightType.POSITIONAL);
         ambLight.setLocation(new Vector3f(5.0f, 4.0f, 2.0f));
         //posLight.setLocation(new Vector3f(7.0f, 4.0f, 1.0f));
 
         player.getLocalForwardVector();
-        dirLight.setType(Light.LightType.SPOTLIGHT);
-        dirLight.setLocation(player.getWorldLocation());
-        dirLight.setDirection(player.getLocalForwardVector());
+        headLights.setType(Light.LightType.SPOTLIGHT);
+
+        headLights.setLocation(invisibleShape.getWorldLocation());
+        headLights.setDirection(player.getLocalForwardVector());
+
         (engine.getSceneGraph()).addLight(ambLight);
-        engine.getSceneGraph().addLight(dirLight);
+        engine.getSceneGraph().addLight(headLights);
 
         //--------------Initialize camera -------------------
         im = engine.getInputManager();
+        String gpName = im.getFirstGamepadName();
         Camera cam = (engine.getRenderSystem()).getViewport("MAIN").getCamera();
-        cam3D = new CameraOrbit3D (cam, player, im.getFirstGamepadName(), engine, this);
+        cam3D = new CameraOrbit3D (cam, player, gpName, engine, this);
 
         //------------- Other Inputs Section -----------------
         //setupNetworking();
@@ -291,7 +304,6 @@ public class myGame extends VariableFrameRateGame
         TurnAction turnAction = new TurnAction(this);
 
         // attach the action objects to gamepad components
-        String gpName = im.getFirstGamepadName();
         im.associateAction(gpName,
                 net.java.games.input.Component.Identifier.Axis.Y,
                 fwdAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
@@ -348,7 +360,6 @@ public class myGame extends VariableFrameRateGame
         initAudio();
 
     } //-----End of initializeGame -----
-
 
     @Override //Things you want to happen constantly / updates with every frame
     public void update()
@@ -458,8 +469,9 @@ public class myGame extends VariableFrameRateGame
 
     public void updateLight()
     {
-        dirLight.setLocation(player.getWorldLocation());
-        dirLight.setDirection(player.getWorldForwardVector());
+        Vector3f help = new Vector3f(1.0f, 1.5f, 1.0f);
+        headLights.setLocation(player.getWorldLocation());
+        headLights.setDirection(player.getLocalForwardVector());
     }
     //-----------NETWORKING METHODS------------
     public ObjShape getGhostShape() { return ghostS; }
@@ -651,6 +663,7 @@ public class myGame extends VariableFrameRateGame
         float d = Math.abs(dolLoc.distance(prize.getWorldLocation()));
         float d2 = Math.abs(dolLoc.distance(prize2.getWorldLocation()));
         float d3 = Math.abs(dolLoc.distance(prize3.getWorldLocation()));
+        float d4 = Math.abs(dolLoc.distance(powerup.getWorldLocation()));
         float randX = -10.0f + rand.nextFloat() * (10.0f-(-10.0f));
         float randZ = -10.0f + rand.nextFloat() * (10.0f-(-10.0f));
         if(d <= 1.0f)
@@ -677,7 +690,19 @@ public class myGame extends VariableFrameRateGame
             score +=1;
             prize3.setLocalLocation(new Vector3f(randX, 0.5f, randZ));
         }
+        else if(d4 <=2.0f)
+        {
+            powerUpCall();
+        }
     }
+    public void powerUpCall()
+    {
+        invisibleShape.getRenderStates().enableRendering();
+        powerup.getRenderStates().disableRendering();
+        score +=3;
+    }
+
+
     //Script method for 7a
     private void executeScript(ScriptEngine engine, String scriptFileName)
     {
