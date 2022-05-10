@@ -47,20 +47,17 @@ public class myGame extends VariableFrameRateGame
     private double startTime, second;
 
     private GameObject player, x, y, z;
-    private GameObject prize, prize2, prize3, ground;
-    private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, modelGhost;
+    private GameObject prize, prize2, prize3, ground, grave1;
+    private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, modelGhost, grave1S;
     private TextureImage doltx, groundT, ghostT, hills, ghostModelT, carTexture;
     private Light ambLight, dirLight;
     private NodeController rc, bc;
     private double deltaTime, prevTime, elapsedTime, amt; //variables for speed movement based on time
-
     private boolean onDolphin, axesOn;
     private Vector3f dolFwd, dolLoc;
     private Matrix4f currentT;
-
     private InputManager im;
     public Random rand = new Random();
-
     private int skyboxTexture; // skyboxes
 
     //Sound variables
@@ -81,10 +78,10 @@ public class myGame extends VariableFrameRateGame
     ScriptEngine jsEngine;
 
     //Variables for physics
-    private GameObject ball1, ball2;
+    private GameObject ball1, ball2, playerWall;
     private PhysicsEngine physicsEngine;
     private JBulletPhysicsEngine jBulletPE;
-    private PhysicsObject ball1P, ball2P, planeP, playerP;
+    private PhysicsObject ball1P, ball2P, planeP, playerP, graveP;
     private boolean running = false;
     private float vals[] = new float[16];
 
@@ -150,6 +147,8 @@ public class myGame extends VariableFrameRateGame
         ghostAS = new AnimatedShape("ghost.rkm", "ghost.rks");
         ghostAS.loadAnimation("WALK", "ghost.rka");
 
+        grave1S = new ImportedModel("grave1.obj");
+
     }
 
     @Override
@@ -204,6 +203,10 @@ public class myGame extends VariableFrameRateGame
         ground.setLocalScale((new Matrix4f()).scaling(15.0f));
         ground.setHeightMap(hills);
 
+        grave1 = new GameObject(GameObject.root(), grave1S);
+        grave1.setLocalTranslation((new Matrix4f()).translation(-5,0.0f,8));
+
+
         //physics test ball 1
         ball1 = new GameObject(GameObject.root(), new Sphere(), doltx);
         ball1.setLocalTranslation((new Matrix4f()).translation(0.0f, 4.0f, 0.0f));
@@ -212,6 +215,10 @@ public class myGame extends VariableFrameRateGame
         ball2 = new GameObject(GameObject.root(), new Sphere(), doltx);
         ball2.setLocalTranslation((new Matrix4f()).translation(-0.5f, 1.0f, 0.0f));
         ball2.setLocalScale((new Matrix4f()).scaling(0.50f));
+
+        playerWall = new GameObject(GameObject.root(), new Cube());
+        playerWall.setLocalLocation(player.getWorldLocation());
+        playerWall.setParent(player);
 
         //Axes lines
         x = new GameObject(GameObject.root(), linxS);
@@ -344,6 +351,20 @@ public class myGame extends VariableFrameRateGame
         planeP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), tempTransform, up, 0.0f);
         planeP.setBounciness(1.0f);
         ground.setPhysicsObject(planeP);
+
+        float upVari[] = {1,0,1};
+        translation = new Matrix4f(player.getLocalTranslation());
+        tempTransform = toDoubleArray(translation.get(vals));
+        playerP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), tempTransform, upVari, 0.0f);
+        playerP.setBounciness(1.0f);
+        playerWall.setPhysicsObject(playerP);
+
+        translation = new Matrix4f(grave1.getLocalTranslation());
+        tempTransform = toDoubleArray(translation.get(vals));
+        //An array of 3 floats giving the dimensions [x,y,z] of the box
+        float box [] = {1f, 1f, 1f};
+        graveP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, tempTransform, box);
+        grave1.setPhysicsObject(graveP);
 
         initAudio();
 
