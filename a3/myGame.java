@@ -42,8 +42,6 @@ public class myGame extends VariableFrameRateGame
     private static Engine engine;
     private Camera cam;
     private CameraOrbit3D cam3D;
-    public Bullet bul;
-
     public static Engine getEngine() { return engine; }
 
     private int score;
@@ -51,8 +49,8 @@ public class myGame extends VariableFrameRateGame
 
     private GameObject player, x, y, z;
     private GameObject prize, prize2, prize3, ground;
-    private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, prizeS1, prizeS2, prizeS3, modelGhost;
-    private TextureImage prizeT1, prizeT2, prizeT3, spikeT, doltx, groundT, ghostT, hills, ghostModelT, carTexture;
+    private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, modelGhost;
+    private TextureImage doltx, groundT, ghostT, hills, ghostModelT, carTexture;
     private Light ambLight, dirLight;
     private NodeController rc, bc;
     private double deltaTime, prevTime, elapsedTime, amt; //variables for speed movement based on time
@@ -158,7 +156,6 @@ public class myGame extends VariableFrameRateGame
     @Override
     public void loadTextures()
     {
-        doltx = new TextureImage("Dolphin_HighPolyUV.png");
         //For terrain
         hills = new TextureImage("hills.jpg"); 
         groundT = new TextureImage("grass.jpg");

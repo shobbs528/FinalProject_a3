@@ -38,30 +38,31 @@ public class CameraOrbit3D
     {	CameraOrbit3D.OrbitAzimuthAction azmAction = new CameraOrbit3D.OrbitAzimuthAction();
         CameraOrbit3D.OrbitRadiusAction radiusAction = new OrbitRadiusAction();
         CameraOrbit3D.OrbitElevationAction elevationAction  = new OrbitElevationAction();
-        CameraOrbit3D.OrbitZoomIn zoomIn  = new OrbitZoomIn();
+        OrbitZoomOut zoomIn  = new OrbitZoomOut();
         InputManager im = engine.getInputManager();
-               //Change to X rotation, should be left right on the right stick.
+               //X rotation, should be left right on the right stick of Xbox controller. This is Z axis on a ps4 controller
         im.associateAction(gp,
-                Component.Identifier.Axis.Z,
+                Component.Identifier.Axis.RX,
                 azmAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
                 
-                //Change to Rotation Y should be up/down right stick
+                //Rotation Y should be up/down right stick
         im.associateAction(gp,
-                Component.Identifier.Axis.RZ,
+                Component.Identifier.Axis.RY,
                 elevationAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
                 
                //Maps to B on the Xbox controller.
         im.associateAction(gp,
-                Component.Identifier.Button._2,
+                Component.Identifier.Button._1,
                 radiusAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
                 //Maps to A on the Xbox controller.
         im.associateAction(gp,
-                Component.Identifier.Button._1,
+                Component.Identifier.Button._2,
                 zoomIn, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 
 
 
     }
+
 
     // Updates the camera position by computing its azimuth, elevation, and distance
     // relative to the target in spherical coordinates, then converting those spherical
@@ -102,7 +103,7 @@ public class CameraOrbit3D
     { //Zooms out
         public void performAction(float time, Event event)
         {
-            float radAmount; //Speed of zoom out
+            float radAmount; //Speed of zoom in
             if (event.getValue() > 0.2) { radAmount = -0.009f; }
             else { radAmount = 0.0f; }
             cameraRadius += radAmount;
@@ -110,11 +111,11 @@ public class CameraOrbit3D
             updateCameraPosition();
         }
     }
-    private class OrbitZoomIn extends AbstractInputAction
+    private class OrbitZoomOut extends AbstractInputAction
     { //Zooms in
         public void performAction(float time, Event event)
         {
-            float radAmount; //Speed of zoom in
+            float radAmount; //Speed of zoom out
             if (event.getValue() > 0.2) { radAmount = 0.009f; }
             else { radAmount = 0.0f; }
             cameraRadius += radAmount;
