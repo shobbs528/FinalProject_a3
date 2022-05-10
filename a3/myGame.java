@@ -16,7 +16,6 @@ import java.net.UnknownHostException;
 import tage.input.InputManager;
 import tage.input.action.AbstractInputAction;
 import tage.nodeControllers.BounceController;
-import tage.nodeControllers.RotationController;
 
 import java.awt.event.KeyEvent;
 import java.io.IOException;
@@ -44,8 +43,8 @@ public class myGame extends VariableFrameRateGame
     private CameraOrbit3D cam3D;
     public static Engine getEngine() { return engine; }
 
-    private int score;
-    private double startTime;
+    private int score, min;
+    private double startTime, second;
 
     private GameObject player, x, y, z;
     private GameObject prize, prize2, prize3, ground;
@@ -171,7 +170,6 @@ public class myGame extends VariableFrameRateGame
     public void buildObjects()
     {	Matrix4f initialTranslation, initialScale, initialRotation;
         deltaTime = 0.0f;
-       // prevTime = 0.0f;
         // build player in the center of the window
         player = new GameObject(GameObject.root(), playerS, carTexture);
         initialTranslation = (new Matrix4f()).translation(0,0.0f,0);
@@ -258,6 +256,7 @@ public class myGame extends VariableFrameRateGame
         (engine.getRenderSystem()).setWindowDimensions(1900,1000);
         score = 0;
         onDolphin = true;
+        min = 5;
 
         // -------------- adding node controllers -----------
         bc = new BounceController(engine, 1.0f);
@@ -354,15 +353,15 @@ public class myGame extends VariableFrameRateGame
     @Override //Things you want to happen constantly / updates with every frame
     public void update()
     {
-        double totalTime = System.currentTimeMillis() - startTime;
+        int elapsTimeSec = Math.round((float)(System.currentTimeMillis()-startTime)/1000.0f);
         elapsedTime = System.currentTimeMillis() - prevTime;
         prevTime = System.currentTimeMillis();
         amt = elapsedTime * 0.03;
-        double amtt = totalTime * 0.001;
+        //double amtt = totalTime * 0.001;
 
         // build and set HUD
         cam = (engine.getRenderSystem().getViewport("MAIN").getCamera());
-        hudManagement((int) totalTime);
+        hudManagement(elapsTimeSec);
 
         //Terrain height stuff.
          Vector3f loc = player.getWorldLocation();
@@ -529,25 +528,40 @@ public class myGame extends VariableFrameRateGame
 
     public void hudManagement(int sec)
     {
-        String elapsTimeStr = Integer.toString(sec);
+        //String elapsTimeStr = Integer.toString(sec);
+        String elapsTimeStr = time(sec);
         String scoreStr = Integer.toString(score);
-        String dispStr1 = "Time = " + elapsTimeStr;
+        String dispStr1 = "Timer = " + elapsTimeStr;
         String dispStr2 = "Score = " + scoreStr;
-        String dolLoc = "Player position = X: "+ (int) player.getWorldLocation().x
-                                           + ", Y: " + (int)player.getWorldLocation().y
-                                           + ", Z: " + (int) player.getWorldLocation().z;
+        //We don't really need the player position
+      //  String dolLoc = "Player position = X: "+ (int) player.getWorldLocation().x
+        //                                   + ", Y: " + (int)player.getWorldLocation().y
+        //                                   + ", Z: " + (int) player.getWorldLocation().z;
         Vector3f hud1Color = new Vector3f(0,1,0);
         Vector3f hud2Color = new Vector3f(0,0,1);
-        Vector3f hudHealthColor = new Vector3f(1, 0, 0);
+     //   Vector3f hudHealthColor = new Vector3f(1, 0, 0); //red
 
         int w = (int) engine.getRenderSystem().getViewport("MAIN").getActualWidth();
         int mapWidth = (int) engine.getRenderSystem().getViewport("MAP").getActualWidth();
         int miniMap = w - mapWidth;
 
         (engine.getHUDmanager()).setHUD1(dispStr1, hud1Color, 0, 15);
-        (engine.getHUDmanager()).setHUD2(dispStr2, hud2Color, 175, 15);
+        (engine.getHUDmanager()).setHUD2(dispStr2, hud2Color, 300, 15);
        // (engine.getHUDmanager()).setHUD3(disHealth, hudHealthColor, 350, 15);
-        (engine.getHUDmanager()).setHUD4(dolLoc, hudHealthColor, miniMap+10, 15);
+       // (engine.getHUDmanager()).setHUD4(dolLoc, hudHealthColor, miniMap+10, 15);
+    }
+    //Creates a countdown timer
+    public String time(int sec)
+    {
+        System.out.println(sec);
+        String timer;
+        if(sec < 60)
+        {
+            return timer = "0 mins "+sec+" secs";
+        }
+        second = sec / 60;
+        timer = second + " minutes";
+        return timer;
     }
 
     @Override
