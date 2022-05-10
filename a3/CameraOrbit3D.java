@@ -38,7 +38,7 @@ public class CameraOrbit3D
     {	CameraOrbit3D.OrbitAzimuthAction azmAction = new CameraOrbit3D.OrbitAzimuthAction();
         CameraOrbit3D.OrbitRadiusAction radiusAction = new OrbitRadiusAction();
         CameraOrbit3D.OrbitElevationAction elevationAction  = new OrbitElevationAction();
-        OrbitZoomOut zoomIn  = new OrbitZoomOut();
+        OrbitZoomOut zoomOut  = new OrbitZoomOut();
         InputManager im = engine.getInputManager();
                //X rotation, should be left right on the right stick of Xbox controller. This is Z axis on a ps4 controller
         im.associateAction(gp,
@@ -57,9 +57,7 @@ public class CameraOrbit3D
                 //Maps to A on the Xbox controller.
         im.associateAction(gp,
                 Component.Identifier.Button._2,
-                zoomIn, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-
-
+                zoomOut, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 
     }
 
