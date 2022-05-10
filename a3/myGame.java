@@ -553,7 +553,6 @@ public class myGame extends VariableFrameRateGame
     //Creates a countdown timer
     public String time(int sec)
     {
-        System.out.println(sec);
         String timer;
         if(sec < 60)
         {
