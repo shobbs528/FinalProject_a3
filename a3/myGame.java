@@ -171,7 +171,7 @@ public class myGame extends VariableFrameRateGame
         deltaTime = 0.0f;
         // build player in the center of the window
         player = new GameObject(GameObject.root(), playerS, carTexture);
-        initialTranslation = (new Matrix4f()).translation(0,0.0f,0);
+        initialTranslation = (new Matrix4f()).translation(0,0.1f,0);
         initialScale = (new Matrix4f()).scaling(0.2f);
         player.setLocalTranslation(initialTranslation);
        // initialRotation = (new Matrix4f()).rotationX((float)java.lang.Math.toRadians(-90.0f));
@@ -198,6 +198,7 @@ public class myGame extends VariableFrameRateGame
         prize3.setLocalRotation(initialRotation);
 
         //-------------Ground object-------------------------
+        groundS.setMatSpe(new float[] {0.2f,0.2f,0.2f});
         ground = new GameObject(GameObject.root(), groundS, groundT);
         ground.setLocalTranslation((new Matrix4f()).translation(0,0,0));
         ground.setLocalScale((new Matrix4f()).scaling(30.0f));
@@ -276,20 +277,22 @@ public class myGame extends VariableFrameRateGame
         bc.enable();
 
         //----------------- adding lights -----------------
-        Light.setGlobalAmbient(0.3f, 0.3f, 0.3f);
+        Light.setGlobalAmbient(0.3f, 0.1f, 0.2f);
         ambLight = new Light();
         headLights = new Light();
         ambLight.setType(Light.LightType.POSITIONAL);
-        ambLight.setLocation(new Vector3f(5.0f, 4.0f, 2.0f));
+        ambLight.setLocation(new Vector3f(0.0f, 30.0f, 0.0f));
         //posLight.setLocation(new Vector3f(7.0f, 4.0f, 1.0f));
+        headLights.setSpecular(0.2f, 0.2f,0.2f);
+        headLights.setAmbient(0.9f, 0.9f,0.9f);
 
         player.getLocalForwardVector();
         headLights.setType(Light.LightType.SPOTLIGHT);
 
-        headLights.setLocation(invisibleShape.getWorldLocation());
+        headLights.setLocation(player.getWorldLocation());
         headLights.setDirection(player.getLocalForwardVector());
 
-        (engine.getSceneGraph()).addLight(ambLight);
+        //(engine.getSceneGraph()).addLight(ambLight);
         engine.getSceneGraph().addLight(headLights);
 
         //--------------Initialize camera -------------------
@@ -376,7 +379,7 @@ public class myGame extends VariableFrameRateGame
 
         //Terrain height stuff.
          Vector3f loc = player.getWorldLocation();
-         float height = ground.getHeight(loc.x(), loc.z()); 
+         float height = ground.getHeight(loc.x(), loc.z());
          player.setLocalLocation(new Vector3f(loc.x(), height, loc.z()));
          updateLight();
 
@@ -467,10 +470,12 @@ public class myGame extends VariableFrameRateGame
     }
     //---------------------------------END OF SOUND SECTION------------------------
 
-    public void updateLight()
-    {
-        Vector3f help = new Vector3f(1.0f, 1.5f, 1.0f);
-        headLights.setLocation(player.getWorldLocation());
+    public void updateLight() //update the location of the head alight so that it stays with the car and facing the forward direction
+    {   //Height for player.y is usually between 0.0 - 0.5. The perfect spot for the light was around 0.17 - 0.2
+        //That means 2.5-3 is a good spot for the light
+        Vector3f help = new Vector3f(0.0f, 2f, 0.0f);
+        Vector3f blah = player.getWorldLocation().add(help);
+        headLights.setLocation(blah);
         headLights.setDirection(player.getLocalForwardVector());
     }
     //-----------NETWORKING METHODS------------
