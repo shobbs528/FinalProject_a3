@@ -714,14 +714,15 @@ public class myGame extends VariableFrameRateGame
     public void toggleLight()
     {
         if(toggleLight) {
-            ambLight.setAmbient(0.0f, 0.0f, 0.0f);
+            headLights.setAmbient(0.0f, 0.0f,0.0f);
+            headLights.setDiffuse(0.0f, 0.0f,0.0f);
             toggleLight = false;
         }
         else {
-            ambLight.setAmbient(0.0f, 0.5f, 1.0f);
+            headLights.setAmbient(0.7f, 0.7f, 0.7f);
+            headLights.setDiffuse(0.9f, 0.9f, 0.9f);
             toggleLight = true;
         }
-
     }
 
     //Script method for 7a
