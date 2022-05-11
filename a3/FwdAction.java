@@ -13,10 +13,12 @@ public class FwdAction extends AbstractInputAction
 	private Vector4f fwdDirection;
 	private Camera cam;
 	private ProtocolClient protClient;
+	float speed;
 
 	public FwdAction(myGame g, ProtocolClient p)
 	{	game = g;
 		protClient = p;
+		speed = 0.009f;
 	}
 
 	@Override
@@ -26,7 +28,6 @@ public class FwdAction extends AbstractInputAction
 		if (keyValue > -.3 && keyValue < .3) return;  // deadzone
 		boolean onDolphin = game.getDolphinStatus();
 		cam = game.getCam();
-
 		av = game.getPlayerModel();
 
 		if(onDolphin) 
@@ -36,7 +37,7 @@ public class FwdAction extends AbstractInputAction
 				oldPosition = av.getWorldLocation();
 				fwdDirection = new Vector4f(0f, 0f, -1f, -1f);
 				fwdDirection.mul(av.getWorldRotation());
-				fwdDirection.mul(0.008f);
+				fwdDirection.mul(speed);
 				newPosition = oldPosition.add(fwdDirection.x(), fwdDirection.y(), fwdDirection.z());
 				av.setLocalLocation(newPosition);
 			} 
@@ -45,7 +46,7 @@ public class FwdAction extends AbstractInputAction
 				oldPosition = av.getWorldLocation();
 				fwdDirection = new Vector4f(0f, 0f, 1f, 1f);
 				fwdDirection.mul(av.getWorldRotation());
-				fwdDirection.mul(0.008f);
+				fwdDirection.mul(speed);
 				newPosition = oldPosition.add(fwdDirection.x(), fwdDirection.y(), fwdDirection.z());
 				av.setLocalLocation(newPosition);
 			}
