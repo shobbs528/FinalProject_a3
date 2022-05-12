@@ -89,6 +89,9 @@ public class myGame extends VariableFrameRateGame
     //Animation Variables---------------------------------------
     private AnimatedShape carAS;
     private AnimatedShape ghostAS;
+    //NPC client side variables------------------------------
+    private ObjShape npcShape;
+    private TextureImage npcTex;
 
 
     public myGame(String serverAddress, int serverPort, String protocol)
@@ -137,7 +140,7 @@ public class myGame extends VariableFrameRateGame
         //For terrain requirement.
         groundS = new TerrainPlane(1000);
         //For model for extra players (for multi-player)
-        ghostS = new ImportedModel("triangleGhost.obj");
+        ghostS = new ImportedModel("triangleCar.obj");
         //Shape for imported model
         modelGhost = new ImportedModel("triangleGhost.obj");
 
@@ -147,6 +150,7 @@ public class myGame extends VariableFrameRateGame
         carAS.loadAnimation("BACK_ST","carBackSt.rka");
         ghostAS = new AnimatedShape("ghost.rkm", "ghost.rks");
         ghostAS.loadAnimation("WALK", "ghost.rka");
+        npcShape = new ImportedModel("triangleGhost.obj");
 
     }
 
@@ -157,11 +161,12 @@ public class myGame extends VariableFrameRateGame
         hills = new TextureImage("hills.jpg"); 
         groundT = new TextureImage("grass.jpg");
         //For model for extra players (for multi-player)
-        ghostT = new TextureImage("redGhostTexture.png");
-        //Texture for imported model
+        ghostT = new TextureImage("carUVText.png");
+        //Texture for imported model of a ghost
         ghostModelT = new TextureImage("ghostTexture.png");
         //Car model texture
         carTexture = new TextureImage("carUVText.png");
+        npcTex = new TextureImage("ghostTexture.png");
     }
 
     @Override
@@ -347,7 +352,6 @@ public class myGame extends VariableFrameRateGame
 
     } //-----End of initializeGame -----
 
-
     @Override //Things you want to happen constantly / updates with every frame
     public void update()
     {
@@ -461,6 +465,10 @@ public class myGame extends VariableFrameRateGame
         dirLight.setLocation(player.getWorldLocation());
         dirLight.setDirection(player.getWorldForwardVector());
     }
+    // ---------- NPC/AI SECTION ----------------
+    public ObjShape getNPCshape() { return npcShape; }
+    public TextureImage getNPCtexture() { return npcTex; }
+
     //-----------NETWORKING METHODS------------
     public ObjShape getGhostShape() { return ghostS; }
     public TextureImage getGhostTexture() { return ghostT; }
