@@ -47,7 +47,7 @@ public class myGame extends VariableFrameRateGame
     private double startTime, second;
 
     private GameObject player, x, y, z;
-    private GameObject prize, prize2, prize3, ground, tinyBall, graveCross1, graveCross2, graveCross3, graveCross4, graveCross5, graveCross6, lever;
+    private GameObject prize, prize2, prize3, ground, tinyBall, graveCross1, graveCross2, graveCross3, graveCross4, graveCross5, graveCross6;
     private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, graveCS, modelGhost;
     private TextureImage groundT, ghostT, hills, ghostModelT, carTexture, stone;
     private Light ambLight, headLights;
@@ -87,7 +87,6 @@ public class myGame extends VariableFrameRateGame
     private float vals[] = new float[16];
 
     //Animation Variables---------------------------------------
-    private AnimatedShape leverAS;
     private AnimatedShape ghostAS;
 
 
@@ -145,8 +144,6 @@ public class myGame extends VariableFrameRateGame
         //Animation shapes
         ghostAS = new AnimatedShape("ghost.rkm", "ghost.rks");
         ghostAS.loadAnimation("WALK", "ghost.rka");
-        leverAS = new AnimatedShape("lever.rkm", "lever.rks");
-        leverAS.loadAnimation("ArmatureAction", "lever.rka");
 
     }
 
@@ -193,10 +190,6 @@ public class myGame extends VariableFrameRateGame
         prize3.setLocalScale((new Matrix4f()).scaling(0.3f));
         prize3.setLocalRotation(initialRotation);
 
-        lever = new GameObject(GameObject.root(), leverAS, stone);
-        lever.setLocalTranslation((new Matrix4f()).translation(0,0.5f,0));
-        lever.setLocalScale((new Matrix4f()).scaling(1f));
-        lever.setLocalRotation(initialRotation);
 
         //-------------Ground object-------------------------
         groundS.setMatSpe(new float[] {0.2f,0.2f,0.2f});
@@ -404,7 +397,6 @@ public class myGame extends VariableFrameRateGame
         im.update((float)elapsedTime);
         collectPrize();
         ghostAS.updateAnimation();
-        leverAS.updateAnimation();
 
         //update sound
         backgroundMusic.setLocation(player.getWorldLocation());
@@ -580,15 +572,12 @@ public class myGame extends VariableFrameRateGame
     @Override
     public void keyPressed(KeyEvent e)
     {
-        switch (e.getKeyCode()) // W, A, S, D, Space, Enter, F, B, H
+        switch (e.getKeyCode()) // W, A, S, D, Space, Enter, F, L
         {
         //Animation-----------------------------------
         case KeyEvent.VK_F:
             ghostAS.stopAnimation();
             ghostAS.playAnimation("WALK", 0.05f, AnimatedShape.EndType.LOOP, 0);
-            break;
-        case KeyEvent.VK_H:
-           // leverAS.playAnimation("ArmatureAction", 0.05f, AnimatedShape.EndType.NONE, 0);
             break;
 
         case KeyEvent.VK_L:
