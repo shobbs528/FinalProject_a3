@@ -249,23 +249,6 @@ public class myGame extends VariableFrameRateGame
         (z.getRenderStates()).setColor(new Vector3f(0f, 0f, 1f)); //Green
 
     }
-    @Override
-    public void createViewports()
-    {
-        (engine.getRenderSystem()).addViewport("MAIN",0,0,1f,1f);
-        (engine.getRenderSystem()).addViewport("MAP",.75f,0,.25f,.25f);
-        Camera camMap = (engine.getRenderSystem()).getViewport("MAP").getCamera();
-
-        Viewport mapVP = (engine.getRenderSystem()).getViewport("MAP");
-        mapVP.setHasBorder(true);
-        mapVP.setBorderWidth(3);
-        mapVP.setBorderColor(0.0f, 1.0f, 1.0f);
-
-        camMap.setLocation(new Vector3f(0,6,0));
-        camMap.setU(new Vector3f(1,0,0));
-        camMap.setV(new Vector3f(0,0,1));
-        camMap.setN(new Vector3f(0,-1,0));
-    }
 
     @Override
     public void loadSkyBoxes()
@@ -576,14 +559,10 @@ public class myGame extends VariableFrameRateGame
         Vector3f hud2Color = new Vector3f(0,0,1);
      //   Vector3f hudHealthColor = new Vector3f(1, 0, 0); //red
 
-        int w = (int) engine.getRenderSystem().getViewport("MAIN").getActualWidth();
-        int mapWidth = (int) engine.getRenderSystem().getViewport("MAP").getActualWidth();
-        int miniMap = w - mapWidth;
-
         (engine.getHUDmanager()).setHUD1(dispStr1, hud1Color, 0, 15);
         (engine.getHUDmanager()).setHUD2(dispStr2, hud2Color, 300, 15);
        // (engine.getHUDmanager()).setHUD3(disHealth, hudHealthColor, 350, 15);
-       // (engine.getHUDmanager()).setHUD4(dolLoc, hudHealthColor, miniMap+10, 15);
+
     }
     //Creates a countdown timer
     public String time(int sec)
@@ -601,28 +580,8 @@ public class myGame extends VariableFrameRateGame
     @Override
     public void keyPressed(KeyEvent e)
     {
-        switch (e.getKeyCode()) //Up, Down, Left, Right, 1, 2, W, A, S, D, Space, Enter, F, B, H
+        switch (e.getKeyCode()) // W, A, S, D, Space, Enter, F, B, H
         {
-        //Requirement 2.1
-        case KeyEvent.VK_UP:
-            engine.getRenderSystem().getViewport("MAP").getCamera().cameraPanVert(1.5f);
-            break;
-        case KeyEvent.VK_DOWN:
-            engine.getRenderSystem().getViewport("MAP").getCamera().cameraPanVert(-1.5f);
-            break;
-        case KeyEvent.VK_LEFT:
-            engine.getRenderSystem().getViewport("MAP").getCamera().cameraPanSide(-1.5f);
-            break;
-        case KeyEvent.VK_RIGHT:
-            engine.getRenderSystem().getViewport("MAP").getCamera().cameraPanSide(1.5f);
-            break;
-        //Requirement 2.2
-        case KeyEvent.VK_1:
-            engine.getRenderSystem().getViewport("MAP").getCamera().moveFrontBack(1f);
-            break;
-        case KeyEvent.VK_2:
-            engine.getRenderSystem().getViewport("MAP").getCamera().moveFrontBack(-1f);
-            break;
         //Animation-----------------------------------
         case KeyEvent.VK_F:
             ghostAS.stopAnimation();
