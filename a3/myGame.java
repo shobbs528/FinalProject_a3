@@ -47,9 +47,9 @@ public class myGame extends VariableFrameRateGame
     private double startTime, second;
 
     private GameObject player, x, y, z;
-    private GameObject prize, prize2, prize3, ground, invisibleShape, powerup;
-    private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, modelGhost;
-    private TextureImage doltx, groundT, ghostT, hills, ghostModelT, carTexture;
+    private GameObject prize, prize2, prize3, ground, tinyBall, graveCross1, graveCross2, graveCross3, graveCross4, graveCross5, graveCross6, lever;
+    private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, graveCS, modelGhost;
+    private TextureImage groundT, ghostT, hills, ghostModelT, carTexture, stone;
     private Light ambLight, headLights;
     private NodeController rc, bc;
     private double deltaTime, prevTime, elapsedTime, amt; //variables for speed movement based on time
@@ -76,7 +76,6 @@ public class myGame extends VariableFrameRateGame
 
     //Script variables.
     private File scriptFile2, scriptFile3;
-    private long fileLastModifiedTime = 0;
     ScriptEngine jsEngine;
 
     //Variables for physics
@@ -88,7 +87,7 @@ public class myGame extends VariableFrameRateGame
     private float vals[] = new float[16];
 
     //Animation Variables---------------------------------------
-    private AnimatedShape carAS;
+    private AnimatedShape leverAS;
     private AnimatedShape ghostAS;
 
 
@@ -141,13 +140,13 @@ public class myGame extends VariableFrameRateGame
         ghostS = new ImportedModel("triangleGhost.obj");
         //Shape for imported model
         modelGhost = new ImportedModel("triangleGhost.obj");
+        graveCS = new ImportedModel("grave2T.obj");
 
         //Animation shapes
-        carAS = new AnimatedShape("car.rkm", "carSk.rks");
-        carAS.loadAnimation("FORE_ST","carForeSt.rka");
-        carAS.loadAnimation("BACK_ST","carBackSt.rka");
         ghostAS = new AnimatedShape("ghost.rkm", "ghost.rks");
         ghostAS.loadAnimation("WALK", "ghost.rka");
+        leverAS = new AnimatedShape("lever.rkm", "lever.rks");
+        leverAS.loadAnimation("ArmatureAction", "lever.rka");
 
     }
 
@@ -163,6 +162,7 @@ public class myGame extends VariableFrameRateGame
         ghostModelT = new TextureImage("ghostTexture.png");
         //Car model texture
         carTexture = new TextureImage("carUVText.png");
+        stone = new TextureImage("stone-texture.jpg");
     }
 
     @Override
@@ -174,11 +174,7 @@ public class myGame extends VariableFrameRateGame
         initialTranslation = (new Matrix4f()).translation(0,0.1f,0);
         initialScale = (new Matrix4f()).scaling(0.2f);
         player.setLocalTranslation(initialTranslation);
-       // initialRotation = (new Matrix4f()).rotationX((float)java.lang.Math.toRadians(-90.0f));
         player.setLocalScale(initialScale);
-      //  player.setLocalRotation(initialRotation);
-        //initialRotation = (new Matrix4f()).rotationZ((float)java.lang.Math.toRadians(180.0f));
-       //  player.setLocalRotation(initialRotation);
 
         //Build enemy
         prize = new GameObject(GameObject.root(),ghostAS, ghostModelT);
@@ -197,6 +193,11 @@ public class myGame extends VariableFrameRateGame
         prize3.setLocalScale((new Matrix4f()).scaling(0.3f));
         prize3.setLocalRotation(initialRotation);
 
+        lever = new GameObject(GameObject.root(), leverAS, stone);
+        lever.setLocalTranslation((new Matrix4f()).translation(0,0.5f,0));
+        lever.setLocalScale((new Matrix4f()).scaling(1f));
+        lever.setLocalRotation(initialRotation);
+
         //-------------Ground object-------------------------
         groundS.setMatSpe(new float[] {0.2f,0.2f,0.2f});
         ground = new GameObject(GameObject.root(), groundS, groundT);
@@ -205,31 +206,47 @@ public class myGame extends VariableFrameRateGame
         ground.setHeightMap(hills);
 
         //physics test ball 1
-        ball1 = new GameObject(GameObject.root(), new Sphere(), doltx);
-        ball1.setLocalTranslation((new Matrix4f()).translation(0.0f, 4.0f, 0.0f));
+        ball1 = new GameObject(GameObject.root(), new Sphere(), stone);
+        ball1.setLocalTranslation((new Matrix4f()).translation(0.0f, 9.0f, 0.0f));
         ball1.setLocalScale((new Matrix4f()).scaling(0.50f));
         //physics test ball 2
-        ball2 = new GameObject(GameObject.root(), new Sphere(), doltx);
-        ball2.setLocalTranslation((new Matrix4f()).translation(-0.5f, 1.0f, 0.0f));
+        ball2 = new GameObject(GameObject.root(), new Sphere(), stone);
+        ball2.setLocalTranslation((new Matrix4f()).translation(-0.5f, 7.0f, 0.0f));
         ball2.setLocalScale((new Matrix4f()).scaling(0.50f));
 
-        invisibleShape = new GameObject(GameObject.root(), new Sphere());
+        tinyBall = new GameObject(GameObject.root(), new Sphere());
         initialTranslation = (new Matrix4f()).translation(0.5f,1.0f,1.0f);
-        invisibleShape.setLocalTranslation(initialTranslation);
-        invisibleShape.setParent(player);
-        invisibleShape.getRenderStates().disableRendering();
+        tinyBall.setLocalTranslation(initialTranslation);
+        tinyBall.setParent(player);
+        tinyBall.getRenderStates().disableRendering();
 
-        powerup = new GameObject(GameObject.root(), new Sphere());
-        initialTranslation = (new Matrix4f()).translation(18.0f,1.0f,-12.0f);
-        powerup.setLocalTranslation(initialTranslation);
+        graveCross1 = new GameObject(GameObject.root(), graveCS, stone);
+        graveCross1.setLocalTranslation((new Matrix4f()).translation(-16,0,16));
+        graveCross1.setLocalScale((new Matrix4f()).scaling(0.5f));
+        graveCross2 = new GameObject(GameObject.root(), graveCS, stone);
+        graveCross2.setLocalTranslation((new Matrix4f()).translation(15,0,15));
+        graveCross2.setLocalScale((new Matrix4f()).scaling(0.5f));
+        graveCross3 = new GameObject(GameObject.root(), graveCS, stone);
+        graveCross3.setLocalTranslation((new Matrix4f()).translation(6,0,6));
+        graveCross3.setLocalScale((new Matrix4f()).scaling(0.5f));
+        graveCross4 = new GameObject(GameObject.root(), graveCS, stone);
+        graveCross4.setLocalTranslation((new Matrix4f()).translation(-23,0,-6));
+        graveCross4.setLocalScale((new Matrix4f()).scaling(0.5f));
+        graveCross5 = new GameObject(GameObject.root(), graveCS, stone);
+        graveCross5.setLocalTranslation((new Matrix4f()).translation(12,0,-19));
+        graveCross5.setLocalScale((new Matrix4f()).scaling(0.5f));
+        graveCross6 = new GameObject(GameObject.root(), graveCS, stone);
+        graveCross6.setLocalTranslation((new Matrix4f()).translation(-2,0,-18));
+        graveCross6.setLocalScale((new Matrix4f()).scaling(0.5f));
+
 
         //Axes lines
         x = new GameObject(GameObject.root(), linxS);
         y = new GameObject(GameObject.root(), linyS);
         z = new GameObject(GameObject.root(), linzS);
-        (x.getRenderStates()).setColor(new Vector3f(1f, 0f, 0f));
-        (y.getRenderStates()).setColor(new Vector3f(0f, 1f, 0f));
-        (z.getRenderStates()).setColor(new Vector3f(0f, 0f, 1f));
+        (x.getRenderStates()).setColor(new Vector3f(1f, 0f, 0f)); //Red
+        (y.getRenderStates()).setColor(new Vector3f(0f, 1f, 0f)); //Blue
+        (z.getRenderStates()).setColor(new Vector3f(0f, 0f, 1f)); //Green
 
     }
     @Override
@@ -404,6 +421,7 @@ public class myGame extends VariableFrameRateGame
         im.update((float)elapsedTime);
         collectPrize();
         ghostAS.updateAnimation();
+        leverAS.updateAnimation();
 
         //update sound
         backgroundMusic.setLocation(player.getWorldLocation());
@@ -426,9 +444,9 @@ public class myGame extends VariableFrameRateGame
         resource3 = audioMgr.createAudioResource("assets/sounds/GhostDying.wav", AudioResourceType.AUDIO_SAMPLE);
         resource4 = audioMgr.createAudioResource("assets/sounds/StartupSound.wav", AudioResourceType.AUDIO_SAMPLE);
 
-        backgroundMusic = new Sound(resource1, SoundType.SOUND_MUSIC, 100, true);
+        backgroundMusic = new Sound(resource1, SoundType.SOUND_MUSIC, 70, true);
         GhostDying = new Sound(resource3, SoundType.SOUND_EFFECT, 100, false);
-        CarStartup = new Sound(resource4, SoundType.SOUND_EFFECT, 100, false);
+        CarStartup = new Sound(resource4, SoundType.SOUND_EFFECT, 50, false);
         CarDriving = new Sound(resource2, SoundType.SOUND_EFFECT, 100, false);
 
         backgroundMusic.initialize(audioMgr);
@@ -610,12 +628,8 @@ public class myGame extends VariableFrameRateGame
             ghostAS.stopAnimation();
             ghostAS.playAnimation("WALK", 0.05f, AnimatedShape.EndType.LOOP, 0);
             break;
-        case KeyEvent.VK_B:
-             carAS.stopAnimation();
-             carAS.playAnimation("BACK_ST", 0.2f, AnimatedShape.EndType.LOOP, 0);
-             break;
         case KeyEvent.VK_H:
-            ghostAS.stopAnimation();
+           // leverAS.playAnimation("ArmatureAction", 0.05f, AnimatedShape.EndType.NONE, 0);
             break;
 
         case KeyEvent.VK_L:
@@ -673,9 +687,10 @@ public class myGame extends VariableFrameRateGame
         float d = Math.abs(dolLoc.distance(prize.getWorldLocation()));
         float d2 = Math.abs(dolLoc.distance(prize2.getWorldLocation()));
         float d3 = Math.abs(dolLoc.distance(prize3.getWorldLocation()));
-        float d4 = Math.abs(dolLoc.distance(powerup.getWorldLocation()));
-        float randX = -10.0f + rand.nextFloat() * (10.0f-(-10.0f));
-        float randZ = -10.0f + rand.nextFloat() * (10.0f-(-10.0f));
+        float d4 = Math.abs(dolLoc.distance(ball1.getWorldLocation()));
+        float d5 = Math.abs(dolLoc.distance(ball2.getWorldLocation()));
+        float randX = -15.0f + rand.nextFloat() * (15.0f-(-15.0f));
+        float randZ = -15.0f + rand.nextFloat() * (15.0f-(-15.0f));
         if(d <= 1.0f)
         {
             GhostDying.setLocation(player.getWorldLocation());
@@ -700,15 +715,30 @@ public class myGame extends VariableFrameRateGame
             score +=1;
             prize3.setLocalLocation(new Vector3f(randX, 0.5f, randZ));
         }
-        else if(d4 <=2.0f)
+        else if(d4 <=1.0f)
         {
-            powerUpCall();
+            powerUpCall(1);
+        }
+        else if(d5 <=1.0f)
+        {
+            powerUpCall(2);
+        }
+        if(score == 10)
+        {
+            running = true;
         }
     }
-    public void powerUpCall()
+    public void powerUpCall(int num)
     {
-        invisibleShape.getRenderStates().enableRendering();
-        powerup.getRenderStates().disableRendering();
+        tinyBall.getRenderStates().enableRendering();
+        if(num == 1)
+        {
+            ball1.getRenderStates().disableRendering();
+        }
+        else if (num == 2)
+        {
+            ball2.getRenderStates().disableRendering();
+        }
         score +=3;
     }
     public void toggleLight()
