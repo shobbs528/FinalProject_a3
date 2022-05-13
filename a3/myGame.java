@@ -64,7 +64,8 @@ public class myGame extends VariableFrameRateGame
 
     //Sound variables
     private IAudioManager audioMgr;
-    private Sound backgroundMusic, GhostDying, CarStartup, CarDriving;
+    private Sound backgroundMusic, GhostDying, CarStartup, CarDriving, GhostLaughing;
+    private int randGhost, randTimer;
 
     //Networking variables.
     private GhostManager gm;
@@ -361,6 +362,7 @@ public class myGame extends VariableFrameRateGame
         ground.setPhysicsObject(planeP);
 
         initAudio();
+        randTimer = rand.nextInt(26) + 1;
 
     } //-----End of initializeGame -----
 
@@ -409,32 +411,56 @@ public class myGame extends VariableFrameRateGame
         backgroundMusic.setLocation(player.getWorldLocation());
         setEarParameters();
 
+        randGhost = rand.nextInt(2) + 1;
+        switch(randGhost)
+        {
+            case 1:
+                GhostLaughing.setLocation(prize.getWorldLocation());
+                break;
+            case 2:
+                GhostLaughing.setLocation(prize2.getWorldLocation());
+                break;
+            case 3:
+                GhostLaughing.setLocation(prize3.getWorldLocation());
+                break;
+            default:
+                GhostLaughing.setLocation(ground.getWorldLocation());
+        }
+
+        if (elapsedTime % (double)randTimer == 0.00)
+        {
+            GhostLaughing.play();
+        }
+
         processNetworking((float)elapsedTime);
     }//End of update
     //--------------------------------SOUND SECTION--------------------------
     public void initAudio()
     {
-        AudioResource resource1, resource2, resource3, resource4;
+        AudioResource resource1, resource2, resource3, resource4, resource5;
         audioMgr = AudioManagerFactory.createAudioManager("tage.audio.joal.JOALAudioManager");
         if (!audioMgr.initialize())
         {
             System.out.println("Audio Manager could not initialize.");
             return;
         }
-        resource1 = audioMgr.createAudioResource("assets/sounds/BackgroundMusic.wav", AudioResourceType.AUDIO_SAMPLE);
+        resource1 = audioMgr.createAudioResource("assets/sounds/BackgroundMusic.wav", AudioResourceType.AUDIO_STREAM);
         resource2 = audioMgr.createAudioResource("assets/sounds/CarDriving.wav", AudioResourceType.AUDIO_SAMPLE);
         resource3 = audioMgr.createAudioResource("assets/sounds/GhostDying.wav", AudioResourceType.AUDIO_SAMPLE);
         resource4 = audioMgr.createAudioResource("assets/sounds/StartupSound.wav", AudioResourceType.AUDIO_SAMPLE);
+        resource5 = audioMgr.createAudioResource("assets/sounds/GhostLaughing.wav", AudioResourceType.AUDIO_SAMPLE);
 
-        backgroundMusic = new Sound(resource1, SoundType.SOUND_MUSIC, 100, true);
+        backgroundMusic = new Sound(resource1, SoundType.SOUND_MUSIC, 75, true);
         GhostDying = new Sound(resource3, SoundType.SOUND_EFFECT, 100, false);
-        CarStartup = new Sound(resource4, SoundType.SOUND_EFFECT, 100, false);
-        CarDriving = new Sound(resource2, SoundType.SOUND_EFFECT, 100, false);
+        CarStartup = new Sound(resource4, SoundType.SOUND_EFFECT, 70, false);
+        CarDriving = new Sound(resource2, SoundType.SOUND_EFFECT, 70, false);
+        GhostLaughing = new Sound(resource5, SoundType.SOUND_EFFECT, 100, false);
 
         backgroundMusic.initialize(audioMgr);
         GhostDying.initialize(audioMgr);
         CarStartup.initialize(audioMgr);
         CarDriving.initialize(audioMgr);
+        GhostLaughing.initialize(audioMgr);
 
         backgroundMusic.setMaxDistance(20.0f);
         backgroundMusic.setMinDistance(0.2f);
@@ -444,13 +470,26 @@ public class myGame extends VariableFrameRateGame
         CarStartup.setMinDistance(0.2f);
         CarStartup.setRollOff(5.0f);
 
+        GhostDying.setMaxDistance(20.0f);
+        GhostDying.setMinDistance(0.2f);
+        GhostDying.setRollOff(5.0f);
+
+        GhostLaughing.setMaxDistance(20.0f);
+        GhostLaughing.setMinDistance(0.2f);
+        GhostLaughing.setRollOff(5.0f);
+
+        CarDriving.setMaxDistance(20.0f);
+        CarDriving.setMinDistance(0.2f);
+        CarDriving.setRollOff(5.0f);
+
+
         CarStartup.setLocation(player.getWorldLocation());
         setEarParameters();
         CarStartup.play();
 
         try
         {
-            Thread.sleep(5000);
+            Thread.sleep(4000);
         }
         catch(InterruptedException ie)
         {
@@ -458,8 +497,10 @@ public class myGame extends VariableFrameRateGame
         }
 
         backgroundMusic.setLocation(player.getWorldLocation());
+        GhostLaughing.setLocation(ground.getWorldLocation());
+        CarDriving.setLocation(player.getWorldLocation());
+        GhostDying.setLocation(ground.getWorldLocation());
         setEarParameters();
-
         backgroundMusic.play();
     }
     public void setEarParameters()
@@ -489,10 +530,6 @@ public class myGame extends VariableFrameRateGame
         try
         {
             protClient = new ProtocolClient(InetAddress.getByName(serverAddress), serverPort, serverProtocol, this);
-        }
-        catch (UnknownHostException e)
-        {
-            e.printStackTrace();
         }
         catch (IOException e)
         {
@@ -627,6 +664,7 @@ public class myGame extends VariableFrameRateGame
                 dolFwd = player.getWorldForwardVector();
                 dolLoc = player.getWorldLocation();
                 player.setLocalLocation(dolLoc.add(dolFwd.mul(0.4f)));
+                CarDriving.play();
                 break;
         case KeyEvent.VK_A:
                   //Key turns Player
