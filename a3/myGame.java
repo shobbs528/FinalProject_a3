@@ -7,11 +7,11 @@ import org.joml.Vector3f;
 import tage.*;
 import tage.audio.*;
 import tage.networking.server.IGameConnection;
+import tage.nodeControllers.RotationController;
 import tage.physics.PhysicsEngineFactory;
 import tage.shapes.*;
 import java.lang.Math;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 import tage.input.InputManager;
 import tage.input.action.AbstractInputAction;
@@ -47,11 +47,11 @@ public class myGame extends VariableFrameRateGame
     private double startTime, second;
 
     private GameObject player, x, y, z;
-    private GameObject prize, prize2, prize3, ground, invisibleShape, powerup;
-    private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, modelGhost;
-    private TextureImage doltx, groundT, ghostT, hills, ghostModelT, carTexture;
+    private GameObject prize, prize2, prize3, ground, invisibleShape, powerup, testTorus;
+    private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, modelGhost, torus;
+    private TextureImage doltx, groundT, ghostT, hills, ghostModelT, carTexture, brick;
     private Light ambLight, headLights;
-    private NodeController rc, bc;
+    private NodeController rc, bc, rc3;
     private double deltaTime, prevTime, elapsedTime, amt; //variables for speed movement based on time
 
     private boolean onDolphin, axesOn, toggleLight;
@@ -76,7 +76,7 @@ public class myGame extends VariableFrameRateGame
     private boolean isClientConnected = false;
 
     //Script variables.
-    private File scriptFile2, scriptFile3;
+    private File scriptFile2, scriptFile3, scriptFile4;
     private long fileLastModifiedTime = 0;
     ScriptEngine jsEngine;
 
@@ -135,6 +135,7 @@ public class myGame extends VariableFrameRateGame
         linxS = new Line(new Vector3f(0f,0f,0f), new Vector3f(3f,0f,0f));
         linyS = new Line(new Vector3f(0f,0f,0f), new Vector3f(0f,3f,0f));
         linzS = new Line(new Vector3f(0f,0f,0f), new Vector3f(0f,0f,-3f));
+        torus = new Torus();
 
         //For terrain requirement.
         groundS = new TerrainPlane(1000);
@@ -164,6 +165,8 @@ public class myGame extends VariableFrameRateGame
         ghostModelT = new TextureImage("ghostTexture.png");
         //Car model texture
         carTexture = new TextureImage("carUVText.png");
+
+        brick = new TextureImage("brick1.jpg");
     }
 
     @Override
@@ -187,6 +190,7 @@ public class myGame extends VariableFrameRateGame
         prize.setLocalScale((new Matrix4f()).scaling(0.3f));
         initialRotation = (new Matrix4f()).rotationX((float) Math.toRadians(90.0f));
         prize.setLocalRotation(initialRotation);
+
         //second enemy
         prize2 = new GameObject(GameObject.root(), ghostAS, ghostModelT);
         prize2.setLocalTranslation((new Matrix4f()).translation(5,0.5f,3));
@@ -197,6 +201,10 @@ public class myGame extends VariableFrameRateGame
         prize3.setLocalTranslation((new Matrix4f()).translation(-4,0.5f,-4));
         prize3.setLocalScale((new Matrix4f()).scaling(0.3f));
         prize3.setLocalRotation(initialRotation);
+
+//        testTorus = new GameObject(GameObject.root(), torus, brick);
+//        testTorus.setLocalTranslation((new Matrix4f()).translation(-20, 0.5f, -20));
+//        testTorus.setLocalScale(initialScale);
 
         //-------------Ground object-------------------------
         groundS.setMatSpe(new float[] {0.2f,0.2f,0.2f});
@@ -330,6 +338,13 @@ public class myGame extends VariableFrameRateGame
         scriptFile3 = new File("assets/scripts/UpdateLightColor.js");
         this.runScript(scriptFile3);
 
+        scriptFile4 = new File("assets/scripts/setGhostSpinSpeed.js");
+        this.runScript(scriptFile4);
+        rc3 = new RotationController(engine, new Vector3f(1,1,0), ((Double)(jsEngine.get("spinSpeed"))).floatValue());
+        rc3.addTarget(prize);
+        (engine.getSceneGraph()).addNodeController(rc3);
+        rc3.enable();
+
         //------------- PHYSICS --------------
         // --- initialize physics system ---
         String engine = "tage.physics.JBullet.JBulletPhysicsEngine";
@@ -340,7 +355,7 @@ public class myGame extends VariableFrameRateGame
 
         //  --- create physics world ---
         float mass = 1.0f;
-        float up[] = {0,1,0};
+        float[] up = {0,1,0};
         double[] tempTransform;
 
         Matrix4f translation = new Matrix4f(ball1.getLocalTranslation());
@@ -426,6 +441,7 @@ public class myGame extends VariableFrameRateGame
             default:
                 GhostLaughing.setLocation(ground.getWorldLocation());
         }
+        setEarParameters();
 
         if (elapsedTime % (double)randTimer == 0.00)
         {
@@ -450,11 +466,11 @@ public class myGame extends VariableFrameRateGame
         resource4 = audioMgr.createAudioResource("assets/sounds/StartupSound.wav", AudioResourceType.AUDIO_SAMPLE);
         resource5 = audioMgr.createAudioResource("assets/sounds/GhostLaughing.wav", AudioResourceType.AUDIO_SAMPLE);
 
-        backgroundMusic = new Sound(resource1, SoundType.SOUND_MUSIC, 75, true);
+        backgroundMusic = new Sound(resource1, SoundType.SOUND_MUSIC, 35, true);
         GhostDying = new Sound(resource3, SoundType.SOUND_EFFECT, 100, false);
-        CarStartup = new Sound(resource4, SoundType.SOUND_EFFECT, 70, false);
-        CarDriving = new Sound(resource2, SoundType.SOUND_EFFECT, 70, false);
-        GhostLaughing = new Sound(resource5, SoundType.SOUND_EFFECT, 100, false);
+        CarStartup = new Sound(resource4, SoundType.SOUND_EFFECT, 40, false);
+        CarDriving = new Sound(resource2, SoundType.SOUND_EFFECT, 20, false);
+        GhostLaughing = new Sound(resource5, SoundType.SOUND_EFFECT, 1400, false);
 
         backgroundMusic.initialize(audioMgr);
         GhostDying.initialize(audioMgr);
@@ -474,7 +490,7 @@ public class myGame extends VariableFrameRateGame
         GhostDying.setMinDistance(0.2f);
         GhostDying.setRollOff(5.0f);
 
-        GhostLaughing.setMaxDistance(20.0f);
+        GhostLaughing.setMaxDistance(10.0f);
         GhostLaughing.setMinDistance(0.2f);
         GhostLaughing.setRollOff(5.0f);
 
@@ -685,19 +701,31 @@ public class myGame extends VariableFrameRateGame
                 //get the light to be updated
                 Light lgt = engine.getLightManager().getLight(0);
                 // invoke the script function
-                try { invocableEngine.invokeFunction("updateAmbientColor", lgt); }
-                catch (ScriptException e1) {System.out.println("ScriptException in " + scriptFile3 + e1); }
-                catch (NoSuchMethodException e2) {System.out.println("No such method exception in " + scriptFile3 + e2); }
-                catch (NullPointerException e3) {System.out.println ("Null ptr exception reading " + scriptFile3 + e3); }
+                try
+                {
+                    invocableEngine.invokeFunction("updateAmbientColor", lgt);
+                }
+                catch (ScriptException e1)
+                {
+                    System.out.println("ScriptException in " + scriptFile3 + e1);
+                }
+                catch (NoSuchMethodException e2)
+                {
+                    System.out.println("No such method exception in " + scriptFile3 + e2);
+                }
+                catch (NullPointerException e3)
+                {
+                    System.out.println ("Null ptr exception reading " + scriptFile3 + e3);
+                }
             break;
 
         //Test for gravity
         case KeyEvent.VK_ENTER:
-        {
             System.out.println("starting physics");
             running = true;
-        } break;
-
+            break;
+        case KeyEvent.VK_EQUALS:
+            //set random ghost spin speed
         default:
             System.out.println("That key doesn't do anything");
             throw new IllegalStateException("Unexpected value: " + e.getKeyCode());
