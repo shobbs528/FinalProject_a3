@@ -47,9 +47,9 @@ public class myGame extends VariableFrameRateGame
     private double startTime, second;
 
     private GameObject player, x, y, z;
-    private GameObject prize, prize2, prize3, ground, invisibleShape;
-    private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, modelGhost, torus;
-    private TextureImage doltx, groundT, ghostT, hills, ghostModelT, carTexture, brick;
+    private GameObject prize, prize2, prize3, ground, invisibleShape, grave1, grave2, grave3, grave4, grave5, grave6;
+    private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, modelGhost, torus, graveS;
+    private TextureImage doltx, groundT, ghostT, hills, ghostModelT, carTexture, brick, stone;
     private Light ambLight, headLights;
     private NodeController rc, bc, rc3;
     private double deltaTime, prevTime, elapsedTime, amt; //variables for speed movement based on time
@@ -147,12 +147,11 @@ public class myGame extends VariableFrameRateGame
         modelGhost = new ImportedModel("triangleGhost.obj");
 
         //Animation shapes
-        carAS = new AnimatedShape("car.rkm", "carSk.rks");
-        carAS.loadAnimation("FORE_ST","carForeSt.rka");
-        carAS.loadAnimation("BACK_ST","carBackSt.rka");
         ghostAS = new AnimatedShape("ghost.rkm", "ghost.rks");
         ghostAS.loadAnimation("WALK", "ghost.rka");
         npcShape = new ImportedModel("triangleGhost.obj");
+
+        graveS = new ImportedModel("grave2T.obj");
 
     }
 
@@ -169,6 +168,7 @@ public class myGame extends VariableFrameRateGame
         //Car model texture
         carTexture = new TextureImage("carUVText.png");
         npcTex = new TextureImage("ghostTexture.png");
+        stone = new TextureImage("stone-texture.jpg");
     }
 
     @Override
@@ -217,11 +217,11 @@ public class myGame extends VariableFrameRateGame
 
         //physics test ball 1
         ball1 = new GameObject(GameObject.root(), new Sphere(), doltx);
-        ball1.setLocalTranslation((new Matrix4f()).translation(0.0f, 4.0f, 0.0f));
+        ball1.setLocalTranslation((new Matrix4f()).translation(0.0f, 14.0f, 0.0f));
         ball1.setLocalScale((new Matrix4f()).scaling(0.50f));
         //physics test ball 2
         ball2 = new GameObject(GameObject.root(), new Sphere(), doltx);
-        ball2.setLocalTranslation((new Matrix4f()).translation(-0.5f, 1.0f, 0.0f));
+        ball2.setLocalTranslation((new Matrix4f()).translation(-0.5f, 11.0f, 0.0f));
         ball2.setLocalScale((new Matrix4f()).scaling(0.50f));
 
         invisibleShape = new GameObject(GameObject.root(), new Sphere());
@@ -229,6 +229,25 @@ public class myGame extends VariableFrameRateGame
         invisibleShape.setLocalTranslation(initialTranslation);
         invisibleShape.setParent(player);
         invisibleShape.getRenderStates().disableRendering();
+
+        grave1 = new GameObject(GameObject.root(), graveS, stone);
+        grave1.setLocalTranslation((new Matrix4f()).translation(-15.0f, 0.0f, -15.0f));
+        grave1.setLocalScale((new Matrix4f()).scaling(0.50f));
+        grave2 = new GameObject(GameObject.root(), graveS, stone);
+        grave2.setLocalTranslation((new Matrix4f()).translation(15.0f, 0.0f, 15.0f));
+        grave2.setLocalScale((new Matrix4f()).scaling(0.50f));
+        grave3 = new GameObject(GameObject.root(), graveS, stone);
+        grave3.setLocalTranslation((new Matrix4f()).translation(-8.0f, 0.0f, 12.0f));
+        grave3.setLocalScale((new Matrix4f()).scaling(0.50f));
+        grave4 = new GameObject(GameObject.root(), graveS, stone);
+        grave4.setLocalTranslation((new Matrix4f()).translation(4.0f, 0.0f, -4.0f));
+        grave4.setLocalScale((new Matrix4f()).scaling(0.50f));
+        grave5 = new GameObject(GameObject.root(),graveS, stone);
+        grave5.setLocalTranslation((new Matrix4f()).translation(-6.0f, 0.0f, -6.0f));
+        grave5.setLocalScale((new Matrix4f()).scaling(0.50f));
+        grave6 = new GameObject(GameObject.root(), graveS, stone);
+        grave6.setLocalTranslation((new Matrix4f()).translation(14.0f, 0.0f, -7.0f));
+        grave6.setLocalScale((new Matrix4f()).scaling(0.50f));
 
         //Axes lines
         x = new GameObject(GameObject.root(), linxS);
@@ -239,23 +258,23 @@ public class myGame extends VariableFrameRateGame
         (z.getRenderStates()).setColor(new Vector3f(0f, 0f, 1f));
 
     }
-    @Override
-    public void createViewports()
-    {
-        (engine.getRenderSystem()).addViewport("MAIN",0,0,1f,1f);
-        (engine.getRenderSystem()).addViewport("MAP",.75f,0,.25f,.25f);
-        Camera camMap = (engine.getRenderSystem()).getViewport("MAP").getCamera();
-
-        Viewport mapVP = (engine.getRenderSystem()).getViewport("MAP");
-        mapVP.setHasBorder(true);
-        mapVP.setBorderWidth(3);
-        mapVP.setBorderColor(0.0f, 1.0f, 1.0f);
-
-        camMap.setLocation(new Vector3f(0,6,0));
-        camMap.setU(new Vector3f(1,0,0));
-        camMap.setV(new Vector3f(0,0,1));
-        camMap.setN(new Vector3f(0,-1,0));
-    }
+//    @Override
+//    public void createViewports()
+//    {
+//        (engine.getRenderSystem()).addViewport("MAIN",0,0,1f,1f);
+//        (engine.getRenderSystem()).addViewport("MAP",.75f,0,.25f,.25f);
+//        Camera camMap = (engine.getRenderSystem()).getViewport("MAP").getCamera();
+//
+//        Viewport mapVP = (engine.getRenderSystem()).getViewport("MAP");
+//        mapVP.setHasBorder(true);
+//        mapVP.setBorderWidth(3);
+//        mapVP.setBorderColor(0.0f, 1.0f, 1.0f);
+//
+//        camMap.setLocation(new Vector3f(0,6,0));
+//        camMap.setU(new Vector3f(1,0,0));
+//        camMap.setV(new Vector3f(0,0,1));
+//        camMap.setN(new Vector3f(0,-1,0));
+//    }
 
     @Override
     public void loadSkyBoxes()
@@ -616,8 +635,6 @@ public class myGame extends VariableFrameRateGame
      //   Vector3f hudHealthColor = new Vector3f(1, 0, 0); //red
 
         int w = (int) engine.getRenderSystem().getViewport("MAIN").getActualWidth();
-        int mapWidth = (int) engine.getRenderSystem().getViewport("MAP").getActualWidth();
-        int miniMap = w - mapWidth;
 
         (engine.getHUDmanager()).setHUD1(dispStr1, hud1Color, 0, 15);
         (engine.getHUDmanager()).setHUD2(dispStr2, hud2Color, 300, 15);
@@ -671,9 +688,9 @@ public class myGame extends VariableFrameRateGame
              carAS.stopAnimation();
              carAS.playAnimation("BACK_ST", 0.2f, AnimatedShape.EndType.LOOP, 0);
              break;
-        case KeyEvent.VK_H:
-            ghostAS.stopAnimation();
-            break;
+//        case KeyEvent.VK_H:
+//            ghostAS.stopAnimation();
+//            break;
 
         case KeyEvent.VK_L:
              toggleLight();
