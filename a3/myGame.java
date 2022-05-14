@@ -56,7 +56,6 @@ public class myGame extends VariableFrameRateGame
 
     private boolean onDolphin, axesOn, toggleLight;
     private Vector3f dolFwd, dolLoc;
-
     private InputManager im;
     public Random rand = new Random();
 
@@ -91,16 +90,19 @@ public class myGame extends VariableFrameRateGame
     //Animation Variables---------------------------------------
     private AnimatedShape carAS;
     private AnimatedShape ghostAS;
+    //NPC client side variables------------------------------
+    private ObjShape npcShape;
+    private TextureImage npcTex;
 
 
-    public myGame()
+    public myGame(String serverAddress, int serverPort, String protocol)
     {
         //String serverAddress, int serverPort, String protocol
         super();
         gm = new GhostManager(this);
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
-        String protocol = "TCP";
+       // String protocol = "TCP";
         if (protocol.toUpperCase().compareTo("TCP") == 0)
             this.serverProtocol = IGameConnection.ProtocolType.TCP;
         else
@@ -109,8 +111,8 @@ public class myGame extends VariableFrameRateGame
 
     public static void main(String[] args)
     {
-        //myGame game = new myGame(args[0], Integer.parseInt(args[1]), args[2]);
-        myGame game = new myGame();
+        myGame game = new myGame(args[0], Integer.parseInt(args[1]), args[2]);
+       // myGame game = new myGame(); Swap these two game calls to turn off and on the network this allows it to run in intellij
         engine = new Engine(game);
         //Script code
         ScriptEngineManager factory = new ScriptEngineManager();
@@ -140,7 +142,7 @@ public class myGame extends VariableFrameRateGame
         //For terrain requirement.
         groundS = new TerrainPlane(1000);
         //For model for extra players (for multi-player)
-        ghostS = new ImportedModel("triangleGhost.obj");
+        ghostS = new ImportedModel("triangleCar.obj");
         //Shape for imported model
         modelGhost = new ImportedModel("triangleGhost.obj");
 
@@ -150,6 +152,7 @@ public class myGame extends VariableFrameRateGame
         carAS.loadAnimation("BACK_ST","carBackSt.rka");
         ghostAS = new AnimatedShape("ghost.rkm", "ghost.rks");
         ghostAS.loadAnimation("WALK", "ghost.rka");
+        npcShape = new ImportedModel("triangleGhost.obj");
 
     }
 
@@ -160,13 +163,12 @@ public class myGame extends VariableFrameRateGame
         hills = new TextureImage("hills.jpg"); 
         groundT = new TextureImage("grass.jpg");
         //For model for extra players (for multi-player)
-        ghostT = new TextureImage("redGhostTexture.png");
-        //Texture for imported model
+        ghostT = new TextureImage("carUVText.png");
+        //Texture for imported model of a ghost
         ghostModelT = new TextureImage("ghostTexture.png");
         //Car model texture
         carTexture = new TextureImage("carUVText.png");
-
-        brick = new TextureImage("brick1.jpg");
+        npcTex = new TextureImage("ghostTexture.png");
     }
 
     @Override
@@ -311,7 +313,7 @@ public class myGame extends VariableFrameRateGame
         cam3D = new CameraOrbit3D (cam, player, gpName, engine, this);
 
         //------------- Other Inputs Section -----------------
-        //setupNetworking();
+        setupNetworking();
         FwdAction fwdAction = new FwdAction(this, protClient);
         TurnAction turnAction = new TurnAction(this);
 
@@ -421,6 +423,8 @@ public class myGame extends VariableFrameRateGame
         im.update((float)elapsedTime);
         collectPrize();
         ghostAS.updateAnimation();
+        protClient.sendMoveMessage(player.getWorldLocation());
+        //protClient.sendMoveMessage((Vector3f) player.getWorldRotation()); ??
 
         //update sound
         backgroundMusic.setLocation(player.getWorldLocation());
@@ -535,6 +539,10 @@ public class myGame extends VariableFrameRateGame
         headLights.setLocation(blah);
         headLights.setDirection(player.getLocalForwardVector());
     }
+    // ---------- NPC/AI SECTION ----------------
+    public ObjShape getNPCshape() { return npcShape; }
+    public TextureImage getNPCtexture() { return npcTex; }
+
     //-----------NETWORKING METHODS------------
     public ObjShape getGhostShape() { return ghostS; }
     public TextureImage getGhostTexture() { return ghostT; }
