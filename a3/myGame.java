@@ -779,6 +779,10 @@ public class myGame extends VariableFrameRateGame
         {
             powerUpCall(2);
         }
+        if(score == 10)
+        {
+            running = true;
+        }
     }
     public void powerUpCall(int num)
     {
