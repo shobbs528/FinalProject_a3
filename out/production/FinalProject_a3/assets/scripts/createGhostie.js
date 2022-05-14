@@ -1,4 +1,5 @@
-var JavaPackages = new JavaImporter(
+var JavaPackages = new JavaImporter
+(
 	Packages.a3.GhostAvatar,
 	Packages.org.joml.Vector3f
 );
