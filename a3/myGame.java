@@ -47,7 +47,7 @@ public class myGame extends VariableFrameRateGame
     private double startTime, second;
 
     private GameObject player, x, y, z;
-    private GameObject prize, prize2, prize3, ground, invisibleShape, powerup, testTorus;
+    private GameObject prize, prize2, prize3, ground, invisibleShape;
     private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, modelGhost, torus;
     private TextureImage doltx, groundT, ghostT, hills, ghostModelT, carTexture, brick;
     private Light ambLight, headLights;
@@ -229,10 +229,6 @@ public class myGame extends VariableFrameRateGame
         invisibleShape.setLocalTranslation(initialTranslation);
         invisibleShape.setParent(player);
         invisibleShape.getRenderStates().disableRendering();
-
-        powerup = new GameObject(GameObject.root(), new Sphere());
-        initialTranslation = (new Matrix4f()).translation(18.0f,1.0f,-12.0f);
-        powerup.setLocalTranslation(initialTranslation);
 
         //Axes lines
         x = new GameObject(GameObject.root(), linxS);
@@ -747,7 +743,8 @@ public class myGame extends VariableFrameRateGame
         float d = Math.abs(dolLoc.distance(prize.getWorldLocation()));
         float d2 = Math.abs(dolLoc.distance(prize2.getWorldLocation()));
         float d3 = Math.abs(dolLoc.distance(prize3.getWorldLocation()));
-        float d4 = Math.abs(dolLoc.distance(powerup.getWorldLocation()));
+        float d4 = Math.abs(dolLoc.distance(ball1.getWorldLocation()));
+        float d5 = Math.abs(dolLoc.distance(ball2.getWorldLocation()));
         float randX = -10.0f + rand.nextFloat() * (10.0f-(-10.0f));
         float randZ = -10.0f + rand.nextFloat() * (10.0f-(-10.0f));
         if(d <= 1.0f)
@@ -774,15 +771,27 @@ public class myGame extends VariableFrameRateGame
             score +=1;
             prize3.setLocalLocation(new Vector3f(randX, 0.5f, randZ));
         }
-        else if(d4 <=2.0f)
+        else if(d4 <=1.0f)
         {
-            powerUpCall();
+            powerUpCall(1);
+        }
+        else if(d5 <=1.0f)
+        {
+            powerUpCall(2);
         }
     }
-    public void powerUpCall()
+    public void powerUpCall(int num)
     {
-        invisibleShape.getRenderStates().enableRendering();
-        powerup.getRenderStates().disableRendering();
+        if(num == 1)
+        {
+            invisibleShape.getRenderStates().enableRendering();
+            ball1.getRenderStates().disableRendering();
+        }
+        else if (num == 2)
+        {
+            invisibleShape.getRenderStates().enableRendering();
+            ball2.getRenderStates().disableRendering();
+        }
         score +=3;
     }
     public void toggleLight()
