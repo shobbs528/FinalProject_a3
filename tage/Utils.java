@@ -267,6 +267,8 @@ public class Utils
 		return textureID;
 	}
 
+	/** Loads a folder that contains 6 images.
+	 * Takes in extension as a string and assigns to variable*/
 	protected static int loadCubeMap(String dirName, String ext)
 	{	GL4 gl = (GL4) GLContext.getCurrentGL();
 		
@@ -414,6 +416,7 @@ public class Utils
 
 	// ------------------ UTILITY FUNCTIONS used by physics
 
+	/** Turns a double array into a float array */
 	public static float[] toFloatArray(double[] arr)
 	{
 		if (arr == null) return null;
@@ -426,6 +429,7 @@ public class Utils
 		return ret;
 	}
 
+	/** Turns a float array into a double array */
 	public static double[] toDoubleArray(float[] arr)
 	{
 		if (arr == null) return null;

@@ -18,7 +18,7 @@ public class FwdAction extends AbstractInputAction
 	public FwdAction(myGame g, ProtocolClient p)
 	{	game = g;
 		protClient = p;
-		speed = 0.009f;
+		speed = 0.05f;
 	}
 
 	public void upSpeed()

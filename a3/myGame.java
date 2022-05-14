@@ -2,10 +2,13 @@ package a3;
 //Samantha Trevino and Sean Hobson
 //Spring '22, CSC 165, Final Project
 
+import net.java.games.input.Component;
+import net.java.games.input.Controller;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import tage.*;
 import tage.audio.*;
+import tage.input.IInputManager;
 import tage.networking.server.IGameConnection;
 import tage.nodeControllers.RotationController;
 import tage.physics.PhysicsEngineFactory;
@@ -19,6 +22,7 @@ import tage.nodeControllers.BounceController;
 
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Random;
 
 //Script imports
@@ -94,7 +98,6 @@ public class myGame extends VariableFrameRateGame
     private ObjShape npcShape;
     private TextureImage npcTex;
 
-
     public myGame(String serverAddress, int serverPort, String protocol)
     {
         //String serverAddress, int serverPort, String protocol
@@ -102,7 +105,6 @@ public class myGame extends VariableFrameRateGame
         gm = new GhostManager(this);
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
-       // String protocol = "TCP";
         if (protocol.toUpperCase().compareTo("TCP") == 0)
             this.serverProtocol = IGameConnection.ProtocolType.TCP;
         else
@@ -116,12 +118,10 @@ public class myGame extends VariableFrameRateGame
         engine = new Engine(game);
         //Script code
         ScriptEngineManager factory = new ScriptEngineManager();
-        //String scriptFileName = "assets/scripts/UpdateLightColor.js";
 
         // get the JavaScript engine
         ScriptEngine jsEngine = factory.getEngineByName("js");
         // run the script
-       // game.executeScript(jsEngine, scriptFileName);
         game.initializeSystem();
         game.game_loop();
     }
@@ -129,6 +129,7 @@ public class myGame extends VariableFrameRateGame
     public GameObject getPlayerModel() {return player; }
     public boolean getDolphinStatus() { return onDolphin; }
     public Camera getCam() { return cam; }
+
 
     @Override
     public void loadShapes()
@@ -180,11 +181,7 @@ public class myGame extends VariableFrameRateGame
         initialTranslation = (new Matrix4f()).translation(0,0.1f,0);
         initialScale = (new Matrix4f()).scaling(0.2f);
         player.setLocalTranslation(initialTranslation);
-       // initialRotation = (new Matrix4f()).rotationX((float)java.lang.Math.toRadians(-90.0f));
         player.setLocalScale(initialScale);
-      //  player.setLocalRotation(initialRotation);
-        //initialRotation = (new Matrix4f()).rotationZ((float)java.lang.Math.toRadians(180.0f));
-       //  player.setLocalRotation(initialRotation);
 
         //Build enemy
         prize = new GameObject(GameObject.root(),ghostAS, ghostModelT);
@@ -258,23 +255,6 @@ public class myGame extends VariableFrameRateGame
         (z.getRenderStates()).setColor(new Vector3f(0f, 0f, 1f));
 
     }
-//    @Override
-//    public void createViewports()
-//    {
-//        (engine.getRenderSystem()).addViewport("MAIN",0,0,1f,1f);
-//        (engine.getRenderSystem()).addViewport("MAP",.75f,0,.25f,.25f);
-//        Camera camMap = (engine.getRenderSystem()).getViewport("MAP").getCamera();
-//
-//        Viewport mapVP = (engine.getRenderSystem()).getViewport("MAP");
-//        mapVP.setHasBorder(true);
-//        mapVP.setBorderWidth(3);
-//        mapVP.setBorderColor(0.0f, 1.0f, 1.0f);
-//
-//        camMap.setLocation(new Vector3f(0,6,0));
-//        camMap.setU(new Vector3f(1,0,0));
-//        camMap.setV(new Vector3f(0,0,1));
-//        camMap.setN(new Vector3f(0,-1,0));
-//    }
 
     @Override
     public void loadSkyBoxes()
@@ -297,9 +277,6 @@ public class myGame extends VariableFrameRateGame
         // -------------- adding node controllers -----------
         bc = new BounceController(engine, 1.0f);
         (engine.getSceneGraph()).addNodeController(bc);
-        //bc.addTarget(prize);
-        //bc.addTarget(prize2);
-      //  bc.addTarget(prize3);
         bc.enable();
 
         //----------------- adding lights -----------------
@@ -332,13 +309,22 @@ public class myGame extends VariableFrameRateGame
         FwdAction fwdAction = new FwdAction(this, protClient);
         TurnAction turnAction = new TurnAction(this);
 
-        // attach the action objects to gamepad components
-        im.associateAction(gpName,
-                net.java.games.input.Component.Identifier.Axis.Y,
-                fwdAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-        im.associateAction(gpName,
-                net.java.games.input.Component.Identifier.Axis.X,
-                turnAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+        ArrayList<Controller> controllers = im.getControllers();
+        for (Controller c : controllers)
+        {
+            if (c.getType() == Controller.Type.KEYBOARD)
+            {
+                im.associateAction(c, Component.Identifier.Key.W, fwdAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+                im.associateAction(c, Component.Identifier.Key.A, turnAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+                im.associateAction(c, Component.Identifier.Key.D, turnAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+                im.associateAction(c, Component.Identifier.Key.S, fwdAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+            }
+            else if (c.getType() == Controller.Type.GAMEPAD || c.getType() == Controller.Type.STICK)
+            {
+                im.associateAction(c, Component.Identifier.Axis.X, turnAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+                im.associateAction(c, Component.Identifier.Axis.Y, fwdAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+            }
+        }
 
         //-------------Script section ---------------------
         // initialize the scripting engine
@@ -357,7 +343,7 @@ public class myGame extends VariableFrameRateGame
 
         scriptFile4 = new File("assets/scripts/setGhostSpinSpeed.js");
         this.runScript(scriptFile4);
-        rc3 = new RotationController(engine, new Vector3f(1,1,0), ((Double)(jsEngine.get("spinSpeed"))).floatValue());
+        rc3 = new RotationController(engine, new Vector3f(1,0,0), ((Double)(jsEngine.get("spinSpeed"))).floatValue());
         rc3.addTarget(prize);
         (engine.getSceneGraph()).addNodeController(rc3);
         rc3.enable();
@@ -405,7 +391,6 @@ public class myGame extends VariableFrameRateGame
         elapsedTime = System.currentTimeMillis() - prevTime;
         prevTime = System.currentTimeMillis();
         amt = elapsedTime * 0.03;
-        //double amtt = totalTime * 0.001;
 
         // build and set HUD
         cam = (engine.getRenderSystem().getViewport("MAIN").getCamera());
@@ -469,7 +454,7 @@ public class myGame extends VariableFrameRateGame
 
         processNetworking((float)elapsedTime);
     }//End of update
-    //--------------------------------SOUND SECTION--------------------------
+
     public void initAudio()
     {
         AudioResource resource1, resource2, resource3, resource4, resource5;
@@ -627,19 +612,13 @@ public class myGame extends VariableFrameRateGame
         String dispStr1 = "Timer = " + elapsTimeStr;
         String dispStr2 = "Score = " + scoreStr;
         //We don't really need the player position
-      //  String dolLoc = "Player position = X: "+ (int) player.getWorldLocation().x
-        //                                   + ", Y: " + (int)player.getWorldLocation().y
-        //                                   + ", Z: " + (int) player.getWorldLocation().z;
         Vector3f hud1Color = new Vector3f(0,1,0);
         Vector3f hud2Color = new Vector3f(0,0,1);
-     //   Vector3f hudHealthColor = new Vector3f(1, 0, 0); //red
 
         int w = (int) engine.getRenderSystem().getViewport("MAIN").getActualWidth();
 
         (engine.getHUDmanager()).setHUD1(dispStr1, hud1Color, 0, 15);
         (engine.getHUDmanager()).setHUD2(dispStr2, hud2Color, 300, 15);
-       // (engine.getHUDmanager()).setHUD3(disHealth, hudHealthColor, 350, 15);
-       // (engine.getHUDmanager()).setHUD4(dolLoc, hudHealthColor, miniMap+10, 15);
     }
     //Creates a countdown timer
     public String time(int sec)
@@ -659,26 +638,6 @@ public class myGame extends VariableFrameRateGame
     {
         switch (e.getKeyCode()) //Up, Down, Left, Right, 1, 2, W, A, S, D, Space, Enter, F, B, H
         {
-        //Requirement 2.1
-        case KeyEvent.VK_UP:
-            engine.getRenderSystem().getViewport("MAP").getCamera().cameraPanVert(1.5f);
-            break;
-        case KeyEvent.VK_DOWN:
-            engine.getRenderSystem().getViewport("MAP").getCamera().cameraPanVert(-1.5f);
-            break;
-        case KeyEvent.VK_LEFT:
-            engine.getRenderSystem().getViewport("MAP").getCamera().cameraPanSide(-1.5f);
-            break;
-        case KeyEvent.VK_RIGHT:
-            engine.getRenderSystem().getViewport("MAP").getCamera().cameraPanSide(1.5f);
-            break;
-        //Requirement 2.2
-        case KeyEvent.VK_1:
-            engine.getRenderSystem().getViewport("MAP").getCamera().moveFrontBack(1f);
-            break;
-        case KeyEvent.VK_2:
-            engine.getRenderSystem().getViewport("MAP").getCamera().moveFrontBack(-1f);
-            break;
         //Animation-----------------------------------
         case KeyEvent.VK_F:
             ghostAS.stopAnimation();
@@ -705,8 +664,8 @@ public class myGame extends VariableFrameRateGame
                 break;
         case KeyEvent.VK_A:
                   //Key turns Player
-                player.objectYaw(player, 0.03f)
-                ;break;
+                player.objectYaw(player, 0.03f);
+                break;
         case KeyEvent.VK_S: //Move Player backwards, same as forward but negative
                 dolFwd = player.getWorldForwardVector();
                 dolLoc = player.getWorldLocation();
@@ -745,8 +704,6 @@ public class myGame extends VariableFrameRateGame
             System.out.println("starting physics");
             running = true;
             break;
-        case KeyEvent.VK_EQUALS:
-            //set random ghost spin speed
         default:
             System.out.println("That key doesn't do anything");
             throw new IllegalStateException("Unexpected value: " + e.getKeyCode());
