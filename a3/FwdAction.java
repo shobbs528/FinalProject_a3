@@ -21,6 +21,11 @@ public class FwdAction extends AbstractInputAction
 		speed = 0.009f;
 	}
 
+	public void upSpeed()
+	{
+		speed += 0.1f;
+	}
+
 	@Override
 	public void performAction(float time, Event e)
 	{

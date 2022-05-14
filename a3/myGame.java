@@ -7,11 +7,11 @@ import org.joml.Vector3f;
 import tage.*;
 import tage.audio.*;
 import tage.networking.server.IGameConnection;
+import tage.nodeControllers.RotationController;
 import tage.physics.PhysicsEngineFactory;
 import tage.shapes.*;
 import java.lang.Math;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 import tage.input.InputManager;
 import tage.input.action.AbstractInputAction;
@@ -47,16 +47,15 @@ public class myGame extends VariableFrameRateGame
     private double startTime, second;
 
     private GameObject player, x, y, z;
-    private GameObject prize, prize2, prize3, ground, tinyBall, graveCross1, graveCross2, graveCross3, graveCross4, graveCross5, graveCross6;
-    private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, graveCS, modelGhost;
-    private TextureImage groundT, ghostT, hills, ghostModelT, carTexture, stone;
+    private GameObject prize, prize2, prize3, ground, invisibleShape, powerup, testTorus;
+    private ObjShape playerS, linxS, linyS, linzS, groundS, ghostS, modelGhost, torus;
+    private TextureImage doltx, groundT, ghostT, hills, ghostModelT, carTexture, brick;
     private Light ambLight, headLights;
-    private NodeController rc, bc;
+    private NodeController rc, bc, rc3;
     private double deltaTime, prevTime, elapsedTime, amt; //variables for speed movement based on time
 
     private boolean onDolphin, axesOn, toggleLight;
     private Vector3f dolFwd, dolLoc;
-
     private InputManager im;
     public Random rand = new Random();
 
@@ -64,7 +63,8 @@ public class myGame extends VariableFrameRateGame
 
     //Sound variables
     private IAudioManager audioMgr;
-    private Sound backgroundMusic, GhostDying, CarStartup, CarDriving;
+    private Sound backgroundMusic, GhostDying, CarStartup, CarDriving, GhostLaughing;
+    private int randGhost, randTimer;
 
     //Networking variables.
     private GhostManager gm;
@@ -75,7 +75,8 @@ public class myGame extends VariableFrameRateGame
     private boolean isClientConnected = false;
 
     //Script variables.
-    private File scriptFile2, scriptFile3;
+    private File scriptFile2, scriptFile3, scriptFile4;
+    private long fileLastModifiedTime = 0;
     ScriptEngine jsEngine;
 
     //Variables for physics
@@ -87,17 +88,21 @@ public class myGame extends VariableFrameRateGame
     private float vals[] = new float[16];
 
     //Animation Variables---------------------------------------
+    private AnimatedShape carAS;
     private AnimatedShape ghostAS;
+    //NPC client side variables------------------------------
+    private ObjShape npcShape;
+    private TextureImage npcTex;
 
 
-    public myGame()
+    public myGame(String serverAddress, int serverPort, String protocol)
     {
         //String serverAddress, int serverPort, String protocol
         super();
         gm = new GhostManager(this);
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
-        String protocol = "TCP";
+       // String protocol = "TCP";
         if (protocol.toUpperCase().compareTo("TCP") == 0)
             this.serverProtocol = IGameConnection.ProtocolType.TCP;
         else
@@ -106,8 +111,8 @@ public class myGame extends VariableFrameRateGame
 
     public static void main(String[] args)
     {
-        //myGame game = new myGame(args[0], Integer.parseInt(args[1]), args[2]);
-        myGame game = new myGame();
+        myGame game = new myGame(args[0], Integer.parseInt(args[1]), args[2]);
+       // myGame game = new myGame(); Swap these two game calls to turn off and on the network this allows it to run in intellij
         engine = new Engine(game);
         //Script code
         ScriptEngineManager factory = new ScriptEngineManager();
@@ -132,18 +137,22 @@ public class myGame extends VariableFrameRateGame
         linxS = new Line(new Vector3f(0f,0f,0f), new Vector3f(3f,0f,0f));
         linyS = new Line(new Vector3f(0f,0f,0f), new Vector3f(0f,3f,0f));
         linzS = new Line(new Vector3f(0f,0f,0f), new Vector3f(0f,0f,-3f));
+        torus = new Torus();
 
         //For terrain requirement.
         groundS = new TerrainPlane(1000);
         //For model for extra players (for multi-player)
-        ghostS = new ImportedModel("triangleGhost.obj");
+        ghostS = new ImportedModel("triangleCar.obj");
         //Shape for imported model
         modelGhost = new ImportedModel("triangleGhost.obj");
-        graveCS = new ImportedModel("grave2T.obj");
 
         //Animation shapes
+        carAS = new AnimatedShape("car.rkm", "carSk.rks");
+        carAS.loadAnimation("FORE_ST","carForeSt.rka");
+        carAS.loadAnimation("BACK_ST","carBackSt.rka");
         ghostAS = new AnimatedShape("ghost.rkm", "ghost.rks");
         ghostAS.loadAnimation("WALK", "ghost.rka");
+        npcShape = new ImportedModel("triangleGhost.obj");
 
     }
 
@@ -154,12 +163,12 @@ public class myGame extends VariableFrameRateGame
         hills = new TextureImage("hills.jpg"); 
         groundT = new TextureImage("grass.jpg");
         //For model for extra players (for multi-player)
-        ghostT = new TextureImage("redGhostTexture.png");
-        //Texture for imported model
+        ghostT = new TextureImage("carUVText.png");
+        //Texture for imported model of a ghost
         ghostModelT = new TextureImage("ghostTexture.png");
         //Car model texture
         carTexture = new TextureImage("carUVText.png");
-        stone = new TextureImage("stone-texture.jpg");
+        npcTex = new TextureImage("ghostTexture.png");
     }
 
     @Override
@@ -171,7 +180,11 @@ public class myGame extends VariableFrameRateGame
         initialTranslation = (new Matrix4f()).translation(0,0.1f,0);
         initialScale = (new Matrix4f()).scaling(0.2f);
         player.setLocalTranslation(initialTranslation);
+       // initialRotation = (new Matrix4f()).rotationX((float)java.lang.Math.toRadians(-90.0f));
         player.setLocalScale(initialScale);
+      //  player.setLocalRotation(initialRotation);
+        //initialRotation = (new Matrix4f()).rotationZ((float)java.lang.Math.toRadians(180.0f));
+       //  player.setLocalRotation(initialRotation);
 
         //Build enemy
         prize = new GameObject(GameObject.root(),ghostAS, ghostModelT);
@@ -179,6 +192,7 @@ public class myGame extends VariableFrameRateGame
         prize.setLocalScale((new Matrix4f()).scaling(0.3f));
         initialRotation = (new Matrix4f()).rotationX((float) Math.toRadians(90.0f));
         prize.setLocalRotation(initialRotation);
+
         //second enemy
         prize2 = new GameObject(GameObject.root(), ghostAS, ghostModelT);
         prize2.setLocalTranslation((new Matrix4f()).translation(5,0.5f,3));
@@ -190,6 +204,9 @@ public class myGame extends VariableFrameRateGame
         prize3.setLocalScale((new Matrix4f()).scaling(0.3f));
         prize3.setLocalRotation(initialRotation);
 
+//        testTorus = new GameObject(GameObject.root(), torus, brick);
+//        testTorus.setLocalTranslation((new Matrix4f()).translation(-20, 0.5f, -20));
+//        testTorus.setLocalScale(initialScale);
 
         //-------------Ground object-------------------------
         groundS.setMatSpe(new float[] {0.2f,0.2f,0.2f});
@@ -199,48 +216,49 @@ public class myGame extends VariableFrameRateGame
         ground.setHeightMap(hills);
 
         //physics test ball 1
-        ball1 = new GameObject(GameObject.root(), new Sphere(), stone);
-        ball1.setLocalTranslation((new Matrix4f()).translation(0.0f, 9.0f, 0.0f));
+        ball1 = new GameObject(GameObject.root(), new Sphere(), doltx);
+        ball1.setLocalTranslation((new Matrix4f()).translation(0.0f, 4.0f, 0.0f));
         ball1.setLocalScale((new Matrix4f()).scaling(0.50f));
         //physics test ball 2
-        ball2 = new GameObject(GameObject.root(), new Sphere(), stone);
-        ball2.setLocalTranslation((new Matrix4f()).translation(-0.5f, 7.0f, 0.0f));
+        ball2 = new GameObject(GameObject.root(), new Sphere(), doltx);
+        ball2.setLocalTranslation((new Matrix4f()).translation(-0.5f, 1.0f, 0.0f));
         ball2.setLocalScale((new Matrix4f()).scaling(0.50f));
 
-        tinyBall = new GameObject(GameObject.root(), new Sphere());
+        invisibleShape = new GameObject(GameObject.root(), new Sphere());
         initialTranslation = (new Matrix4f()).translation(0.5f,1.0f,1.0f);
-        tinyBall.setLocalTranslation(initialTranslation);
-        tinyBall.setParent(player);
-        tinyBall.getRenderStates().disableRendering();
+        invisibleShape.setLocalTranslation(initialTranslation);
+        invisibleShape.setParent(player);
+        invisibleShape.getRenderStates().disableRendering();
 
-        graveCross1 = new GameObject(GameObject.root(), graveCS, stone);
-        graveCross1.setLocalTranslation((new Matrix4f()).translation(-16,0,16));
-        graveCross1.setLocalScale((new Matrix4f()).scaling(0.5f));
-        graveCross2 = new GameObject(GameObject.root(), graveCS, stone);
-        graveCross2.setLocalTranslation((new Matrix4f()).translation(15,0,15));
-        graveCross2.setLocalScale((new Matrix4f()).scaling(0.5f));
-        graveCross3 = new GameObject(GameObject.root(), graveCS, stone);
-        graveCross3.setLocalTranslation((new Matrix4f()).translation(6,0,6));
-        graveCross3.setLocalScale((new Matrix4f()).scaling(0.5f));
-        graveCross4 = new GameObject(GameObject.root(), graveCS, stone);
-        graveCross4.setLocalTranslation((new Matrix4f()).translation(-23,0,-6));
-        graveCross4.setLocalScale((new Matrix4f()).scaling(0.5f));
-        graveCross5 = new GameObject(GameObject.root(), graveCS, stone);
-        graveCross5.setLocalTranslation((new Matrix4f()).translation(12,0,-19));
-        graveCross5.setLocalScale((new Matrix4f()).scaling(0.5f));
-        graveCross6 = new GameObject(GameObject.root(), graveCS, stone);
-        graveCross6.setLocalTranslation((new Matrix4f()).translation(-2,0,-18));
-        graveCross6.setLocalScale((new Matrix4f()).scaling(0.5f));
-
+        powerup = new GameObject(GameObject.root(), new Sphere());
+        initialTranslation = (new Matrix4f()).translation(18.0f,1.0f,-12.0f);
+        powerup.setLocalTranslation(initialTranslation);
 
         //Axes lines
         x = new GameObject(GameObject.root(), linxS);
         y = new GameObject(GameObject.root(), linyS);
         z = new GameObject(GameObject.root(), linzS);
-        (x.getRenderStates()).setColor(new Vector3f(1f, 0f, 0f)); //Red
-        (y.getRenderStates()).setColor(new Vector3f(0f, 1f, 0f)); //Blue
-        (z.getRenderStates()).setColor(new Vector3f(0f, 0f, 1f)); //Green
+        (x.getRenderStates()).setColor(new Vector3f(1f, 0f, 0f));
+        (y.getRenderStates()).setColor(new Vector3f(0f, 1f, 0f));
+        (z.getRenderStates()).setColor(new Vector3f(0f, 0f, 1f));
 
+    }
+    @Override
+    public void createViewports()
+    {
+        (engine.getRenderSystem()).addViewport("MAIN",0,0,1f,1f);
+        (engine.getRenderSystem()).addViewport("MAP",.75f,0,.25f,.25f);
+        Camera camMap = (engine.getRenderSystem()).getViewport("MAP").getCamera();
+
+        Viewport mapVP = (engine.getRenderSystem()).getViewport("MAP");
+        mapVP.setHasBorder(true);
+        mapVP.setBorderWidth(3);
+        mapVP.setBorderColor(0.0f, 1.0f, 1.0f);
+
+        camMap.setLocation(new Vector3f(0,6,0));
+        camMap.setU(new Vector3f(1,0,0));
+        camMap.setV(new Vector3f(0,0,1));
+        camMap.setN(new Vector3f(0,-1,0));
     }
 
     @Override
@@ -295,7 +313,7 @@ public class myGame extends VariableFrameRateGame
         cam3D = new CameraOrbit3D (cam, player, gpName, engine, this);
 
         //------------- Other Inputs Section -----------------
-        //setupNetworking();
+        setupNetworking();
         FwdAction fwdAction = new FwdAction(this, protClient);
         TurnAction turnAction = new TurnAction(this);
 
@@ -322,6 +340,13 @@ public class myGame extends VariableFrameRateGame
         scriptFile3 = new File("assets/scripts/UpdateLightColor.js");
         this.runScript(scriptFile3);
 
+        scriptFile4 = new File("assets/scripts/setGhostSpinSpeed.js");
+        this.runScript(scriptFile4);
+        rc3 = new RotationController(engine, new Vector3f(1,1,0), ((Double)(jsEngine.get("spinSpeed"))).floatValue());
+        rc3.addTarget(prize);
+        (engine.getSceneGraph()).addNodeController(rc3);
+        rc3.enable();
+
         //------------- PHYSICS --------------
         // --- initialize physics system ---
         String engine = "tage.physics.JBullet.JBulletPhysicsEngine";
@@ -332,7 +357,7 @@ public class myGame extends VariableFrameRateGame
 
         //  --- create physics world ---
         float mass = 1.0f;
-        float up[] = {0,1,0};
+        float[] up = {0,1,0};
         double[] tempTransform;
 
         Matrix4f translation = new Matrix4f(ball1.getLocalTranslation());
@@ -354,6 +379,7 @@ public class myGame extends VariableFrameRateGame
         ground.setPhysicsObject(planeP);
 
         initAudio();
+        randTimer = rand.nextInt(26) + 1;
 
     } //-----End of initializeGame -----
 
@@ -397,37 +423,64 @@ public class myGame extends VariableFrameRateGame
         im.update((float)elapsedTime);
         collectPrize();
         ghostAS.updateAnimation();
+        protClient.sendMoveMessage(player.getWorldLocation());
+        //protClient.sendMoveMessage((Vector3f) player.getWorldRotation()); ??
 
         //update sound
         backgroundMusic.setLocation(player.getWorldLocation());
         setEarParameters();
+
+        randGhost = rand.nextInt(2) + 1;
+        switch(randGhost)
+        {
+            case 1:
+                GhostLaughing.setLocation(prize.getWorldLocation());
+                break;
+            case 2:
+                GhostLaughing.setLocation(prize2.getWorldLocation());
+                break;
+            case 3:
+                GhostLaughing.setLocation(prize3.getWorldLocation());
+                break;
+            default:
+                GhostLaughing.setLocation(ground.getWorldLocation());
+        }
+        setEarParameters();
+
+        if (elapsedTime % (double)randTimer == 0.00)
+        {
+            GhostLaughing.play();
+        }
 
         processNetworking((float)elapsedTime);
     }//End of update
     //--------------------------------SOUND SECTION--------------------------
     public void initAudio()
     {
-        AudioResource resource1, resource2, resource3, resource4;
+        AudioResource resource1, resource2, resource3, resource4, resource5;
         audioMgr = AudioManagerFactory.createAudioManager("tage.audio.joal.JOALAudioManager");
         if (!audioMgr.initialize())
         {
             System.out.println("Audio Manager could not initialize.");
             return;
         }
-        resource1 = audioMgr.createAudioResource("assets/sounds/BackgroundMusic.wav", AudioResourceType.AUDIO_SAMPLE);
+        resource1 = audioMgr.createAudioResource("assets/sounds/BackgroundMusic.wav", AudioResourceType.AUDIO_STREAM);
         resource2 = audioMgr.createAudioResource("assets/sounds/CarDriving.wav", AudioResourceType.AUDIO_SAMPLE);
         resource3 = audioMgr.createAudioResource("assets/sounds/GhostDying.wav", AudioResourceType.AUDIO_SAMPLE);
         resource4 = audioMgr.createAudioResource("assets/sounds/StartupSound.wav", AudioResourceType.AUDIO_SAMPLE);
+        resource5 = audioMgr.createAudioResource("assets/sounds/GhostLaughing.wav", AudioResourceType.AUDIO_SAMPLE);
 
-        backgroundMusic = new Sound(resource1, SoundType.SOUND_MUSIC, 70, true);
+        backgroundMusic = new Sound(resource1, SoundType.SOUND_MUSIC, 35, true);
         GhostDying = new Sound(resource3, SoundType.SOUND_EFFECT, 100, false);
-        CarStartup = new Sound(resource4, SoundType.SOUND_EFFECT, 50, false);
-        CarDriving = new Sound(resource2, SoundType.SOUND_EFFECT, 100, false);
+        CarStartup = new Sound(resource4, SoundType.SOUND_EFFECT, 40, false);
+        CarDriving = new Sound(resource2, SoundType.SOUND_EFFECT, 20, false);
+        GhostLaughing = new Sound(resource5, SoundType.SOUND_EFFECT, 1400, false);
 
         backgroundMusic.initialize(audioMgr);
         GhostDying.initialize(audioMgr);
         CarStartup.initialize(audioMgr);
         CarDriving.initialize(audioMgr);
+        GhostLaughing.initialize(audioMgr);
 
         backgroundMusic.setMaxDistance(20.0f);
         backgroundMusic.setMinDistance(0.2f);
@@ -437,13 +490,26 @@ public class myGame extends VariableFrameRateGame
         CarStartup.setMinDistance(0.2f);
         CarStartup.setRollOff(5.0f);
 
+        GhostDying.setMaxDistance(20.0f);
+        GhostDying.setMinDistance(0.2f);
+        GhostDying.setRollOff(5.0f);
+
+        GhostLaughing.setMaxDistance(10.0f);
+        GhostLaughing.setMinDistance(0.2f);
+        GhostLaughing.setRollOff(5.0f);
+
+        CarDriving.setMaxDistance(20.0f);
+        CarDriving.setMinDistance(0.2f);
+        CarDriving.setRollOff(5.0f);
+
+
         CarStartup.setLocation(player.getWorldLocation());
         setEarParameters();
         CarStartup.play();
 
         try
         {
-            Thread.sleep(5000);
+            Thread.sleep(4000);
         }
         catch(InterruptedException ie)
         {
@@ -451,8 +517,10 @@ public class myGame extends VariableFrameRateGame
         }
 
         backgroundMusic.setLocation(player.getWorldLocation());
+        GhostLaughing.setLocation(ground.getWorldLocation());
+        CarDriving.setLocation(player.getWorldLocation());
+        GhostDying.setLocation(ground.getWorldLocation());
         setEarParameters();
-
         backgroundMusic.play();
     }
     public void setEarParameters()
@@ -471,6 +539,10 @@ public class myGame extends VariableFrameRateGame
         headLights.setLocation(blah);
         headLights.setDirection(player.getLocalForwardVector());
     }
+    // ---------- NPC/AI SECTION ----------------
+    public ObjShape getNPCshape() { return npcShape; }
+    public TextureImage getNPCtexture() { return npcTex; }
+
     //-----------NETWORKING METHODS------------
     public ObjShape getGhostShape() { return ghostS; }
     public TextureImage getGhostTexture() { return ghostT; }
@@ -482,10 +554,6 @@ public class myGame extends VariableFrameRateGame
         try
         {
             protClient = new ProtocolClient(InetAddress.getByName(serverAddress), serverPort, serverProtocol, this);
-        }
-        catch (UnknownHostException e)
-        {
-            e.printStackTrace();
         }
         catch (IOException e)
         {
@@ -551,10 +619,14 @@ public class myGame extends VariableFrameRateGame
         Vector3f hud2Color = new Vector3f(0,0,1);
      //   Vector3f hudHealthColor = new Vector3f(1, 0, 0); //red
 
+        int w = (int) engine.getRenderSystem().getViewport("MAIN").getActualWidth();
+        int mapWidth = (int) engine.getRenderSystem().getViewport("MAP").getActualWidth();
+        int miniMap = w - mapWidth;
+
         (engine.getHUDmanager()).setHUD1(dispStr1, hud1Color, 0, 15);
         (engine.getHUDmanager()).setHUD2(dispStr2, hud2Color, 300, 15);
        // (engine.getHUDmanager()).setHUD3(disHealth, hudHealthColor, 350, 15);
-
+       // (engine.getHUDmanager()).setHUD4(dolLoc, hudHealthColor, miniMap+10, 15);
     }
     //Creates a countdown timer
     public String time(int sec)
@@ -572,12 +644,39 @@ public class myGame extends VariableFrameRateGame
     @Override
     public void keyPressed(KeyEvent e)
     {
-        switch (e.getKeyCode()) // W, A, S, D, Space, Enter, F, L
+        switch (e.getKeyCode()) //Up, Down, Left, Right, 1, 2, W, A, S, D, Space, Enter, F, B, H
         {
+        //Requirement 2.1
+        case KeyEvent.VK_UP:
+            engine.getRenderSystem().getViewport("MAP").getCamera().cameraPanVert(1.5f);
+            break;
+        case KeyEvent.VK_DOWN:
+            engine.getRenderSystem().getViewport("MAP").getCamera().cameraPanVert(-1.5f);
+            break;
+        case KeyEvent.VK_LEFT:
+            engine.getRenderSystem().getViewport("MAP").getCamera().cameraPanSide(-1.5f);
+            break;
+        case KeyEvent.VK_RIGHT:
+            engine.getRenderSystem().getViewport("MAP").getCamera().cameraPanSide(1.5f);
+            break;
+        //Requirement 2.2
+        case KeyEvent.VK_1:
+            engine.getRenderSystem().getViewport("MAP").getCamera().moveFrontBack(1f);
+            break;
+        case KeyEvent.VK_2:
+            engine.getRenderSystem().getViewport("MAP").getCamera().moveFrontBack(-1f);
+            break;
         //Animation-----------------------------------
         case KeyEvent.VK_F:
             ghostAS.stopAnimation();
             ghostAS.playAnimation("WALK", 0.05f, AnimatedShape.EndType.LOOP, 0);
+            break;
+        case KeyEvent.VK_B:
+             carAS.stopAnimation();
+             carAS.playAnimation("BACK_ST", 0.2f, AnimatedShape.EndType.LOOP, 0);
+             break;
+        case KeyEvent.VK_H:
+            ghostAS.stopAnimation();
             break;
 
         case KeyEvent.VK_L:
@@ -589,6 +688,7 @@ public class myGame extends VariableFrameRateGame
                 dolFwd = player.getWorldForwardVector();
                 dolLoc = player.getWorldLocation();
                 player.setLocalLocation(dolLoc.add(dolFwd.mul(0.4f)));
+                CarDriving.play();
                 break;
         case KeyEvent.VK_A:
                   //Key turns Player
@@ -609,19 +709,31 @@ public class myGame extends VariableFrameRateGame
                 //get the light to be updated
                 Light lgt = engine.getLightManager().getLight(0);
                 // invoke the script function
-                try { invocableEngine.invokeFunction("updateAmbientColor", lgt); }
-                catch (ScriptException e1) {System.out.println("ScriptException in " + scriptFile3 + e1); }
-                catch (NoSuchMethodException e2) {System.out.println("No such method exception in " + scriptFile3 + e2); }
-                catch (NullPointerException e3) {System.out.println ("Null ptr exception reading " + scriptFile3 + e3); }
+                try
+                {
+                    invocableEngine.invokeFunction("updateAmbientColor", lgt);
+                }
+                catch (ScriptException e1)
+                {
+                    System.out.println("ScriptException in " + scriptFile3 + e1);
+                }
+                catch (NoSuchMethodException e2)
+                {
+                    System.out.println("No such method exception in " + scriptFile3 + e2);
+                }
+                catch (NullPointerException e3)
+                {
+                    System.out.println ("Null ptr exception reading " + scriptFile3 + e3);
+                }
             break;
 
         //Test for gravity
         case KeyEvent.VK_ENTER:
-        {
             System.out.println("starting physics");
             running = true;
-        } break;
-
+            break;
+        case KeyEvent.VK_EQUALS:
+            //set random ghost spin speed
         default:
             System.out.println("That key doesn't do anything");
             throw new IllegalStateException("Unexpected value: " + e.getKeyCode());
@@ -635,10 +747,9 @@ public class myGame extends VariableFrameRateGame
         float d = Math.abs(dolLoc.distance(prize.getWorldLocation()));
         float d2 = Math.abs(dolLoc.distance(prize2.getWorldLocation()));
         float d3 = Math.abs(dolLoc.distance(prize3.getWorldLocation()));
-        float d4 = Math.abs(dolLoc.distance(ball1.getWorldLocation()));
-        float d5 = Math.abs(dolLoc.distance(ball2.getWorldLocation()));
-        float randX = -15.0f + rand.nextFloat() * (15.0f-(-15.0f));
-        float randZ = -15.0f + rand.nextFloat() * (15.0f-(-15.0f));
+        float d4 = Math.abs(dolLoc.distance(powerup.getWorldLocation()));
+        float randX = -10.0f + rand.nextFloat() * (10.0f-(-10.0f));
+        float randZ = -10.0f + rand.nextFloat() * (10.0f-(-10.0f));
         if(d <= 1.0f)
         {
             GhostDying.setLocation(player.getWorldLocation());
@@ -663,30 +774,15 @@ public class myGame extends VariableFrameRateGame
             score +=1;
             prize3.setLocalLocation(new Vector3f(randX, 0.5f, randZ));
         }
-        else if(d4 <=1.0f)
+        else if(d4 <=2.0f)
         {
-            powerUpCall(1);
-        }
-        else if(d5 <=1.0f)
-        {
-            powerUpCall(2);
-        }
-        if(score == 10)
-        {
-            running = true;
+            powerUpCall();
         }
     }
-    public void powerUpCall(int num)
+    public void powerUpCall()
     {
-        tinyBall.getRenderStates().enableRendering();
-        if(num == 1)
-        {
-            ball1.getRenderStates().disableRendering();
-        }
-        else if (num == 2)
-        {
-            ball2.getRenderStates().disableRendering();
-        }
+        invisibleShape.getRenderStates().enableRendering();
+        powerup.getRenderStates().disableRendering();
         score +=3;
     }
     public void toggleLight()
